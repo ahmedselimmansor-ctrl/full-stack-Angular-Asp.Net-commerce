@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/admin.service';
-import { TranslatePipe } from '../../core/i18n';
+import { LocaleService, TranslatePipe } from '../../core/i18n';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import type { Paged, StockLevel } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
@@ -108,6 +108,7 @@ import { type ChipSpec, StatusChip } from '../../shared/ui/status-chip';
   `,
 })
 export class AdminStockTable {
+  protected readonly locale = inject(LocaleService);
   protected readonly EmptyIcons = EmptyIcons;
   protected readonly lowChip: ChipSpec = { label: 'status.stock.low', tone: 'warn', translated: true };
   protected readonly okChip: ChipSpec = { label: 'status.stock.ok', tone: 'good', translated: true };
@@ -147,14 +148,14 @@ export class AdminStockTable {
         reorderLevel: Number(this.draftReorder),
       });
 
-      this.notifications.success(`${line.sku} updated.`);
+      this.notifications.success(this.locale.t('notify.stockUpdated', { sku: line.sku }));
       this.editing.set(null);
       await this.load();
     } catch (caught: unknown) {
       // The most likely refusal is setting stock below what is already reserved, and the
       // API's message says exactly that.
       if (!(caught instanceof ApiError)) {
-        this.notifications.error('The adjustment could not be saved.');
+        this.notifications.error(this.locale.t('notify.stockFailed'));
       }
     } finally {
       this.saving.set(false);

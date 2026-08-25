@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/admin.service';
-import { TranslatePipe } from '../../core/i18n';
+import { LocaleService, TranslatePipe } from '../../core/i18n';
 import { AuthService } from '../../core/auth.service';
 import { HasPermissionDirective } from '../../core/has-permission.directive';
 import type { Paged, UserSummary } from '../../core/models';
@@ -82,7 +82,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
                   <div *samaHasPermission="assignPermission" class="grant">
                     <select [attr.aria-label]="'Grant a role to ' + user.displayName"
                             (change)="grant(user, $event)">
-                      <option value="">Grant a role…</option>
+                      <option value="">{{ 'admin.users.grantRole' | t }}</option>
                       @for (role of assignableRoles(user); track role) {
                         <option [value]="role">{{ label(role) }}</option>
                       }
@@ -137,6 +137,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
   `,
 })
 export class AdminUserTable {
+  protected readonly locale = inject(LocaleService);
   protected readonly EmptyIcons = EmptyIcons;
   protected readonly activeChip: ChipSpec = { label: 'status.user.active', tone: 'good', translated: true };
   protected readonly deactivatedChip: ChipSpec = { label: 'status.user.deactivated', tone: 'bad', translated: true };
@@ -190,7 +191,9 @@ export class AdminUserTable {
 
     try {
       await this.admin.assignRole(user.id, role);
-      this.notifications.success(`${user.displayName} is now ${this.label(role)}.`);
+      this.notifications.success(
+        this.locale.t('notify.roleAssigned', { name: user.displayName, role: this.label(role) }),
+      );
       await this.load();
     } catch {
       // Reported by the interceptor.
@@ -199,24 +202,28 @@ export class AdminUserTable {
 
   protected askToRemoveRole(user: UserSummary, role: string): void {
     this.pendingAction.set({
-      title: `Remove the ${this.label(role)} role?`,
-      message: `${user.displayName} will lose every permission that role grants, immediately.`,
-      confirmLabel: 'Remove role',
+      title: this.locale.t('admin.users.removeRoleTitle', { role: this.label(role) }),
+      message: this.locale.t('admin.users.removeRoleCopy', { name: user.displayName }),
+      confirmLabel: this.locale.t('admin.users.removeRole'),
       run: async () => {
         await this.admin.removeRole(user.id, role);
-        this.notifications.success(`${this.label(role)} removed from ${user.displayName}.`);
+        this.notifications.success(
+          this.locale.t('notify.roleRemoved', { role: this.label(role), name: user.displayName }),
+        );
       },
     });
   }
 
   protected askToDeactivate(user: UserSummary): void {
     this.pendingAction.set({
-      title: 'Deactivate this account?',
-      message: `${user.displayName} will be signed out everywhere and unable to sign in again.`,
+      title: this.locale.t('admin.users.deactivateTitle'),
+      message: this.locale.t('admin.users.deactivateCopy', { name: user.displayName }),
       confirmLabel: 'Deactivate',
       run: async () => {
         await this.admin.deactivateUser(user.id);
-        this.notifications.success(`${user.displayName} was deactivated.`);
+        this.notifications.success(
+          this.locale.t('notify.userDeactivated', { name: user.displayName }),
+        );
       },
     });
   }

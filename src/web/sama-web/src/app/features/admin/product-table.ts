@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AdminService } from '../../core/admin.service';
 import type { ManagedProduct, Paged, ProductStatus } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { MoneyPipe, TranslatePipe } from '../../core/i18n';
+import { LocaleService, MoneyPipe, TranslatePipe } from '../../core/i18n';
 import { ProductImage } from '../../shared/product-image';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
@@ -35,8 +35,8 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
         <select [(ngModel)]="status" (change)="reload()">
           <option [ngValue]="null">{{ 'common.all' | t }}</option>
           <option value="Draft">Draft</option>
-          <option value="Published">Published</option>
-          <option value="Archived">Archived</option>
+          <option value="Published">{{ 'status.product.published' | t }}</option>
+          <option value="Archived">{{ 'status.product.archived' | t }}</option>
         </select>
       </label>
     </div>
@@ -74,6 +74,19 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
                 </td>
                 <td>
                   <a class="name" [routerLink]="[product.id]">{{ product.name }}</a>
+
+                  <!-- The Arabic name is shown beside the English one, and its
+                       absence is marked. Without this, finding which of the
+                       catalogue still needs translating means opening every
+                       product in turn. -->
+                  @if (product.nameAr) {
+                    <span class="name-ar" dir="rtl" lang="ar">{{ product.nameAr }}</span>
+                  } @else {
+                    <span class="untranslated" [attr.title]="'admin.products.noArabicHint' | t">
+                      {{ 'admin.products.noArabic' | t }}
+                    </span>
+                  }
+
                   @if (product.brand) { <span class="brand muted">{{ product.brand }}</span> }
                 </td>
                 <td class="mono">{{ product.sku }}</td>
@@ -115,8 +128,28 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
       (cancelled)="pendingDelete.set(null)" />
   `,
   styleUrl: './admin-tables.scss',
+  styles: `
+    .name-ar {
+      display: block;
+      font-size: 0.84rem;
+      color: var(--text-soft);
+      font-family: var(--sama-body);
+    }
+
+    .untranslated {
+      display: inline-block;
+      margin-block-start: 0.15rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--sama-radius-pill);
+      background: var(--caution-wash);
+      color: var(--caution);
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+  `,
 })
 export class AdminProductTable {
+  protected readonly locale = inject(LocaleService);
   protected readonly EmptyIcons = EmptyIcons;
   private readonly admin = inject(AdminService);
   private readonly notifications = inject(NotificationService);
@@ -157,7 +190,7 @@ export class AdminProductTable {
   protected async publish(product: ManagedProduct): Promise<void> {
     try {
       await this.admin.publishProduct(product.id);
-      this.notifications.success(`${product.name} is now live.`);
+      this.notifications.success(this.locale.t('notify.productLive', { name: product.name }));
       await this.load();
     } catch {
       // A product with no image cannot be published; the interceptor has said so.
@@ -182,7 +215,7 @@ export class AdminProductTable {
 
     try {
       await this.admin.deleteProduct(product.id);
-      this.notifications.success(`${product.name} was withdrawn.`);
+      this.notifications.success(this.locale.t('notify.productWithdrawn', { name: product.name }));
       await this.load();
     } catch {
       // Reported by the interceptor.

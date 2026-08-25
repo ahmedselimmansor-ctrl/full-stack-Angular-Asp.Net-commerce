@@ -2,7 +2,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminService } from '../../core/admin.service';
-import { TranslatePipe } from '../../core/i18n';
+import { LocaleService, TranslatePipe } from '../../core/i18n';
 import { CatalogService } from '../../core/api.service';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import type { CategoryNode, ProductImage as ProductImageModel } from '../../core/models';
@@ -179,6 +179,7 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
   `,
 })
 export class AdminProductForm {
+  protected readonly locale = inject(LocaleService);
   private readonly admin = inject(AdminService);
   private readonly catalog = inject(CatalogService);
   private readonly router = inject(Router);
@@ -286,7 +287,7 @@ export class AdminProductForm {
           images,
         });
 
-        this.notifications.success(`${this.name} created as a draft.`);
+        this.notifications.success(this.locale.t('notify.productDraft', { name: this.name }));
         await this.router.navigate(['/admin/products', created.id]);
         return;
       }
@@ -310,7 +311,7 @@ export class AdminProductForm {
         this.originalCurrency = this.currency;
       }
 
-      this.notifications.success('Changes saved.');
+      this.notifications.success(this.locale.t('notify.changesSaved'));
     } catch (caught: unknown) {
       if (caught instanceof ApiError) {
         this.fieldErrors.set(caught.fieldErrors);

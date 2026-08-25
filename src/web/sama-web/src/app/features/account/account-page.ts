@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '../../core/app-config';
 import { AuthService } from '../../core/auth.service';
-import { TranslatePipe } from '../../core/i18n';
+import { LocaleService, TranslatePipe } from '../../core/i18n';
 import { HasPermissionDirective } from '../../core/has-permission.directive';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import { NotificationService } from '../../core/notification.service';
@@ -105,6 +105,7 @@ import { PageHeader } from '../../shared/ui/page-header';
   `,
 })
 export class AccountPage {
+  protected readonly locale = inject(LocaleService);
   private readonly http = inject(HttpClient);
   private readonly base = inject(APP_CONFIG).apiBaseUrl;
   private readonly router = inject(Router);
@@ -150,7 +151,7 @@ export class AccountPage {
 
       // The server has just revoked every session including this one, so there is nothing to
       // stay signed in with.
-      this.notifications.success('Password changed. Please sign in again.');
+      this.notifications.success(this.locale.t('notify.passwordChanged'));
       await this.auth.logout();
       await this.router.navigateByUrl('/sign-in');
     } catch (caught: unknown) {
@@ -170,11 +171,11 @@ export class AccountPage {
 
     try {
       await firstValueFrom(this.http.post(`${this.base}/api/v1/auth/logout-all`, {}));
-      this.notifications.success('Signed out on every device.');
+      this.notifications.success(this.locale.t('notify.signedOutEverywhere'));
       await this.auth.logout();
       await this.router.navigateByUrl('/sign-in');
     } catch {
-      this.notifications.error('Could not sign out everywhere. Please try again.');
+      this.notifications.error(this.locale.t('notify.signOutEverywhereFailed'));
     } finally {
       this.busy.set(false);
     }

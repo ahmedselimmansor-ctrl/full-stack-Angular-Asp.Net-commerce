@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { AdminService } from '../../core/admin.service';
 import type { Paged, PaymentView } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { MoneyPipe, TranslatePipe } from '../../core/i18n';
+import { LocaleService, MoneyPipe, TranslatePipe } from '../../core/i18n';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
 import { PageHeader } from '../../shared/ui/page-header';
@@ -83,6 +83,7 @@ import { HasPermissionDirective } from '../../core/has-permission.directive';
   styles: `.detail { max-width: 32ch; font-size: 0.85rem; }`,
 })
 export class AdminPaymentTable {
+  protected readonly locale = inject(LocaleService);
   protected readonly EmptyIcons = EmptyIcons;
   private readonly admin = inject(AdminService);
   private readonly notifications = inject(NotificationService);
@@ -115,7 +116,7 @@ export class AdminPaymentTable {
 
     try {
       await this.admin.refundPayment(payment.id);
-      this.notifications.success('Refund recorded.');
+      this.notifications.success(this.locale.t('notify.refundRecorded'));
       await this.load();
     } catch {
       // Reported by the interceptor.

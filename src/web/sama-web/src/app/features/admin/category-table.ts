@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/admin.service';
-import { TranslatePipe } from '../../core/i18n';
+import { LocaleService, TranslatePipe } from '../../core/i18n';
 import { CatalogService } from '../../core/api.service';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import type { CategoryNode } from '../../core/models';
@@ -56,7 +56,7 @@ import { Skeleton } from '../../shared/ui/skeleton';
           <label class="field">
             <span>{{ 'field.parent' | t }}</span>
             <select name="parentId" [(ngModel)]="parentId" [disabled]="saving()">
-              <option [ngValue]="null">None — a top-level category</option>
+              <option [ngValue]="null">{{ 'field.topLevelCategory' | t }}</option>
               @for (node of flattened(); track node.id) {
                 <option [ngValue]="node.id">{{ node.indentedName }}</option>
               }
@@ -66,7 +66,7 @@ import { Skeleton } from '../../shared/ui/skeleton';
           <label class="field">
             <span>{{ 'field.sortOrder' | t }}</span>
             <input name="sortOrder" type="number" min="0" [(ngModel)]="sortOrder" [disabled]="saving()" />
-            <span class="hint muted">Lower numbers appear first.</span>
+            <span class="hint muted">{{ 'field.sortOrderHint' | t }}</span>
           </label>
 
           @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
@@ -100,6 +100,7 @@ import { Skeleton } from '../../shared/ui/skeleton';
   `,
 })
 export class AdminCategoryTable {
+  protected readonly locale = inject(LocaleService);
   protected readonly EmptyIcons = EmptyIcons;
   private readonly admin = inject(AdminService);
   private readonly catalog = inject(CatalogService);
@@ -169,7 +170,7 @@ export class AdminCategoryTable {
         sortOrder: Number(this.sortOrder) || 0,
       });
 
-      this.notifications.success(`${this.name} created.`);
+      this.notifications.success(this.locale.t('notify.categoryCreated', { name: this.name }));
       this.name = '';
       this.slug = '';
       this.parentId = null;
