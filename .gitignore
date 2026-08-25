@@ -64,3 +64,8 @@ Thumbs.db
 # ---- Android build outputs & local SDK path ----
 src/mobile/sama-android/local.properties
 src/mobile/sama-android/.kotlin/
+
+# ---- Playwright ----
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+tests/e2e/.playwright/

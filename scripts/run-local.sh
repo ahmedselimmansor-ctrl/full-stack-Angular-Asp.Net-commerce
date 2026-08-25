@@ -51,6 +51,18 @@ case "${1:-start}" in
     ;;
 esac
 
+# Build once, up front.
+#
+# Starting seven services in parallel with `dotnet run` has each of them rebuild the shared
+# projects at the same time, and they collide on the same obj/*.pdb — the symptom is a couple
+# of services silently failing to start with a file-lock error buried in their log.
+echo "Building..."
+if ! dotnet build "$ROOT/Sama.slnx" --configuration Debug -v q --nologo > "$LOGS/build.log" 2>&1; then
+  echo "Build failed. See $LOGS/build.log" >&2
+  tail -20 "$LOGS/build.log" >&2
+  exit 1
+fi
+
 # The emulator keeps topics and subscriptions in memory, so they vanish whenever its
 # container restarts. Provisioning on every start makes that invisible instead of surfacing
 # later as a saga that silently stops halfway.
@@ -64,13 +76,13 @@ for entry in "${services[@]}"; do
   name="${entry%%:*}"; port="${entry##*:}"
   ( cd "$ROOT/src/services/Sama.$name" && \
     ASPNETCORE_URLS="http://127.0.0.1:$port" \
-    nohup dotnet run --no-launch-profile > "$LOGS/$name.log" 2>&1 & )
+    nohup dotnet run --no-build --no-launch-profile > "$LOGS/$name.log" 2>&1 & )
   echo "starting Sama.$name on :$port"
 done
 
 ( cd "$ROOT/src/gateway/Sama.Gateway" && \
   ASPNETCORE_URLS="http://127.0.0.1:$GATEWAY_PORT" \
-  nohup dotnet run --no-launch-profile > "$LOGS/Gateway.log" 2>&1 & )
+  nohup dotnet run --no-build --no-launch-profile > "$LOGS/Gateway.log" 2>&1 & )
 echo "starting Sama.Gateway on :$GATEWAY_PORT"
 
 echo "Waiting for readiness..."

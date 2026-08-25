@@ -88,6 +88,7 @@ public static class ProductEndpoints
         CatalogDbContext database,
         ISamaCache cache,
         ITenantContext tenant,
+        IRateLimiter limiter,
         CancellationToken cancellationToken,
         Guid? categoryId = null,
         string? q = null,
@@ -97,6 +98,23 @@ public static class ProductEndpoints
     {
         var tenantId = tenant.RequireTenantId();
         var request = new PageRequest(page, pageSize);
+
+        // Browsing and searching are charged differently on purpose. A paged listing is served
+        // from cache and costs almost nothing; a search term reaches the full-text index on
+        // every distinct phrase, so it earns the far tighter bucket. Metering both the same
+        // way would either throttle ordinary browsing or leave search effectively unprotected.
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var partition = RateLimitPartitionKey.Resolve(context, RateLimitPartition.User);
+            var decision = await limiter.AcquireAsync("search", partition, cancellationToken);
+
+            if (!decision.IsAllowed)
+            {
+                RateLimitResponse.WriteHeaders(context, decision);
+                await RateLimitResponse.WriteTooManyRequestsAsync(context, decision);
+                return Results.Empty;
+            }
+        }
 
         // The cache key carries every input that changes the result. Omitting one — the tenant
         // especially — is how one storefront ends up serving another's catalogue.

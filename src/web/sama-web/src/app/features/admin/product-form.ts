@@ -159,10 +159,19 @@ export class AdminProductForm {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
 
-  /** Route parameter: 'new' or a product id. */
-  readonly id = input<string>('new');
+  /**
+   * Route parameter: a product id, or absent on the create route.
+   *
+   * Typed as optional rather than defaulted, because `withComponentInputBinding()` sets an
+   * input to `undefined` when the matched route has no such parameter — which silently
+   * overrides any default and left the create form rendering as an edit form.
+   */
+  readonly id = input<string | undefined>(undefined);
 
-  protected readonly isNew = computed(() => this.id() === 'new');
+  protected readonly isNew = computed(() => {
+    const id = this.id();
+    return !id || id === 'new';
+  });
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -253,7 +262,7 @@ export class AdminProductForm {
         return;
       }
 
-      await this.admin.updateProduct(this.id(), {
+      await this.admin.updateProduct(this.id()!, {
         name: this.name.trim(),
         slug: this.slug.trim(),
         description: this.description.trim(),
@@ -265,7 +274,7 @@ export class AdminProductForm {
       // Price lives behind its own endpoint because changing it emits an event that
       // invalidates caches downstream; only call it when the price actually moved.
       if (Number(this.price) !== this.originalPrice || this.currency !== this.originalCurrency) {
-        await this.admin.changePrice(this.id(), Number(this.price), this.currency);
+        await this.admin.changePrice(this.id()!, Number(this.price), this.currency);
         this.originalPrice = Number(this.price);
         this.originalCurrency = this.currency;
       }
@@ -295,7 +304,7 @@ export class AdminProductForm {
         return;
       }
 
-      const product = await this.admin.product(this.id());
+      const product = await this.admin.product(this.id()!);
 
       this.sku = product.sku;
       this.name = product.name;

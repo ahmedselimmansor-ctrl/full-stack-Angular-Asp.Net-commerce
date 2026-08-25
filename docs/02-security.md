@@ -116,6 +116,7 @@ burst across a window boundary, and for login throttling that doubling is the wh
 |---|---|---|
 | `auth-login` | 5 / 5 min | IP **and** username |
 | `auth-register` | 3 / hour | IP |
+| `auth-refresh` | 600 / 5 min | IP |
 | `checkout` | 10 / min | user |
 | `search` | 30 / min | user |
 | `write` | 60 / min | user |
@@ -123,6 +124,12 @@ burst across a window boundary, and for login throttling that doubling is the wh
 
 Login is partitioned on IP *and* username because credential stuffing rotates the username on
 one IP and the IP on one username; partitioning on either alone misses half the attack.
+
+Refresh is deliberately loose. It cannot be brute-forced — it requires an unguessable 256-bit
+token, and presenting a consumed one already revokes the whole family — so the limit is a
+volumetric guard rather than an anti-guessing one. Setting it tight would mostly punish
+legitimate users sharing an address behind corporate NAT or carrier-grade NAT, who would find
+themselves signed out at random as they throttled each other's renewals.
 
 **The edge fails closed** and the services fail open. A Redis outage must not silently remove
 all throttling from the internet-facing tier, but it also should not stop a shop trading.
