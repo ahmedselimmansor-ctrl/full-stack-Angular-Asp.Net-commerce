@@ -1,0 +1,75 @@
+# Builds any Sama .NET service. The service is selected at build time:
+#   docker build -f build/docker/Dockerfile.service --build-arg SERVICE=Sama.Catalog .
+#
+# syntax=docker/dockerfile:1.7
+ARG DOTNET_VERSION=10.0
+
+# ---------------------------------------------------------------------------------------
+# Restore — isolated so a code change does not invalidate the NuGet cache layer.
+# ---------------------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}-noble AS restore
+ARG SERVICE
+ARG SERVICE_PATH=services
+WORKDIR /src
+
+# Only the files that determine the dependency graph. Copying the whole tree here would make
+# every source edit re-resolve every package.
+# .editorconfig is part of the build contract, not just editor preference: it marks the
+# EF-generated Migrations folder as generated code, without which analysis fails the build on
+# machine-written files.
+COPY Directory.Build.props Directory.Packages.props NuGet.config global.json .editorconfig ./
+COPY src/shared/Sama.Shared.Kernel/*.csproj            src/shared/Sama.Shared.Kernel/
+COPY src/shared/Sama.Shared.Security/*.csproj          src/shared/Sama.Shared.Security/
+COPY src/shared/Sama.Shared.Infrastructure/*.csproj    src/shared/Sama.Shared.Infrastructure/
+COPY src/shared/Sama.Shared.Messaging/*.csproj         src/shared/Sama.Shared.Messaging/
+COPY src/${SERVICE_PATH}/${SERVICE}/*.csproj           src/${SERVICE_PATH}/${SERVICE}/
+
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet restore "src/${SERVICE_PATH}/${SERVICE}/${SERVICE}.csproj"
+
+# ---------------------------------------------------------------------------------------
+# Publish
+# ---------------------------------------------------------------------------------------
+FROM restore AS publish
+ARG SERVICE
+ARG SERVICE_PATH=services
+COPY src/ src/
+
+# A Dockerfile cannot interpolate a build arg inside an exec-form ENTRYPOINT, and the runtime
+# image has no shell to do it for us, so the entry point has to be a constant path.
+#
+# Overriding AssemblyName would be the obvious fix and is wrong: it is a *global* property, so
+# it renames every referenced library to the same name too and the build stops resolving its
+# own namespaces. Renaming the published apphost afterwards is safe instead — the host has the
+# application's real dll name embedded in it and looks for that file beside itself, so the
+# executable's own filename is irrelevant.
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish "src/${SERVICE_PATH}/${SERVICE}/${SERVICE}.csproj" \
+      --configuration Release \
+      --no-restore \
+      --output /app \
+      -p:UseAppHost=true \
+      -warnaserror \
+ && mv "/app/${SERVICE}" /app/sama-service
+
+# ---------------------------------------------------------------------------------------
+# Runtime — Chiselled Ubuntu: no shell, no package manager, runs as UID 1654 (non-root).
+# A container with no shell removes the most common post-exploitation foothold, and the
+# image carries a fraction of the CVE surface of a full base image.
+# ---------------------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-noble-chiseled AS final
+
+WORKDIR /app
+COPY --from=publish --chown=1654:1654 /app .
+
+# Kestrel binds this; the Kubernetes Service and probes target the same port.
+ENV ASPNETCORE_HTTP_PORTS=8080 \
+    DOTNET_gcServer=1 \
+    DOTNET_TieredPGO=1
+
+EXPOSE 8080
+USER 1654
+
+# Exec form, no shell: the process is PID 1 and receives SIGTERM directly, which is what lets
+# Kubernetes drain a pod gracefully instead of killing it after the grace period.
+ENTRYPOINT ["/app/sama-service"]

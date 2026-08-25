@@ -18,8 +18,14 @@ yarn-error.log*
 
 # ---- Android / Kotlin ----
 .gradle/
-build/
-!build/docker/
+# Scoped to the Gradle modules on purpose. A bare `build/` also matched the
+# top-level build/ directory, which holds the Dockerfiles, nginx.conf and the
+# migration runner -- and the `!build/docker/` negation that followed could not
+# rescue them, because git cannot re-include anything inside an excluded
+# directory. The result was a repository with no Dockerfiles in it, which only
+# shows up when someone builds an image from a fresh clone.
+src/mobile/sama-android/build/
+src/mobile/sama-android/*/build/
 local.properties
 *.apk
 *.aab
