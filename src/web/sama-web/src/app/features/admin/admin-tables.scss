@@ -1,0 +1,92 @@
+/* Shared table styling for the back office.
+   One stylesheet rather than per-component copies, so a column never ends up aligned
+   differently on one screen than on another. */
+
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.filters .sama-field { margin-bottom: 0; }
+
+/* The wrapper scrolls, not the page. A wide table must never make the whole document
+   scroll sideways. */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--sama-border);
+  border-radius: var(--sama-radius);
+  background: var(--sama-surface);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+thead th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sama-ink-soft);
+  font-weight: 600;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--sama-border);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--sama-border);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--sama-surface-alt); }
+
+/* Tabular figures so columns of numbers line up on the decimal. */
+.numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
+
+.col-image { width: 52px; }
+.thumb { width: 40px; height: 40px; border-radius: var(--sama-radius-sm); overflow: hidden; }
+
+.name { font-weight: 600; text-decoration: none; display: block; }
+.name:hover { text-decoration: underline; }
+.brand { display: block; font-size: 0.78rem; }
+
+.actions { text-align: right; white-space: nowrap; }
+
+.link {
+  background: none;
+  border: 0;
+  padding: 0 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--sama-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.link:hover { text-decoration: underline; }
+.link--danger { color: var(--sama-danger); }
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (max-width: 720px) {
+  .filters { grid-template-columns: 1fr; }
+}

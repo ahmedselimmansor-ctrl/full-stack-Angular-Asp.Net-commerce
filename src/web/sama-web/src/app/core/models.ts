@@ -130,3 +130,99 @@ export interface ProblemDetails {
   readonly traceId?: string;
   readonly errors?: Record<string, string[]>;
 }
+
+// --- Back office ---------------------------------------------------------------------------
+
+export type ProductStatus = 'Draft' | 'Published' | 'Archived';
+
+/** Back-office product view: carries status and audit stamps the storefront omits. */
+export interface ManagedProduct {
+  readonly id: string;
+  readonly sku: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly brand: string | null;
+  readonly price: number;
+  readonly currency: string;
+  readonly status: ProductStatus;
+  readonly categoryId: string;
+  readonly primaryImageUrl: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string | null;
+}
+
+export interface CreateProductRequest {
+  readonly sku: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly description: string;
+  readonly categoryId: string;
+  readonly price: number;
+  readonly currency: string;
+  readonly brand?: string | null;
+  readonly images?: readonly ProductImage[];
+}
+
+export interface UpdateProductRequest {
+  readonly name: string;
+  readonly slug: string;
+  readonly description: string;
+  readonly categoryId: string;
+  readonly brand?: string | null;
+  readonly images?: readonly ProductImage[];
+}
+
+export interface CreateCategoryRequest {
+  readonly name: string;
+  readonly slug: string;
+  readonly parentId?: string | null;
+  readonly sortOrder: number;
+}
+
+export interface StockLevel {
+  readonly productId: string;
+  readonly sku: string;
+  readonly onHand: number;
+  readonly reserved: number;
+  readonly available: number;
+  readonly reorderLevel: number;
+  readonly belowReorderLevel: boolean;
+}
+
+export interface CreateStockItemRequest {
+  readonly productId: string;
+  readonly sku: string;
+  readonly quantityOnHand: number;
+  readonly reorderLevel: number;
+}
+
+export interface AdjustStockRequest {
+  readonly quantityOnHand: number;
+  readonly reorderLevel?: number | null;
+}
+
+export interface UserSummary {
+  readonly id: string;
+  readonly email: string;
+  readonly displayName: string;
+  readonly isActive: boolean;
+  readonly emailConfirmed: boolean;
+  readonly lastLoginAt: string | null;
+  readonly roles: readonly string[];
+}
+
+export interface PaymentView {
+  readonly id: string;
+  readonly orderId: string;
+  readonly amount: number;
+  readonly currency: string;
+  readonly status: string;
+  readonly failureReason: string | null;
+  readonly createdAt: string;
+  readonly settledAt: string | null;
+}
+
+export interface ChangePasswordRequest {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+}

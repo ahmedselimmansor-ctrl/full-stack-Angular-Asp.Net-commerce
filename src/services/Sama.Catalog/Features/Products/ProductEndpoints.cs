@@ -37,6 +37,16 @@ public static class ProductEndpoints
             .RateLimit("read")
             .WithSummary("Returns one published product by slug.");
 
+        group.MapGet("/manage", ListForManagementAsync)
+            .RequirePermission(SamaPermissions.Catalog.WriteProduct)
+            .RateLimit("read")
+            .WithSummary("Lists products in every status, for the back office.");
+
+        group.MapGet("/manage/{id:guid}", GetForManagementAsync)
+            .RequirePermission(SamaPermissions.Catalog.WriteProduct)
+            .RateLimit("read")
+            .WithSummary("Returns one product in any status, for editing.");
+
         // Service-to-service: Basket and Ordering re-price lines against the catalogue. Batch,
         // because checkout needs every line at once and N round trips would put the catalogue
         // on the critical path N times.
@@ -184,7 +194,7 @@ public static class ProductEndpoints
                 .Where(p => p.Slug == slug && p.Status == ProductStatus.Published)
                 .Select(p => new ProductDetail(
                     p.Id, p.Sku, p.Name, p.Slug, p.Description, p.Brand, p.Price, p.Currency,
-                    p.Status, p.CategoryId,
+                    p.Status.ToString(), p.CategoryId,
                     p.Images.OrderBy(i => i.SortOrder)
                         .Select(i => new ProductImageDto(i.Url, i.AltText, i.SortOrder))
                         .ToList()))
@@ -202,6 +212,74 @@ public static class ProductEndpoints
         context.Response.SetCacheTags($"tenant-{tenantId:N}", $"product-{product.Id:N}");
 
         return context.TryCompleteWithETag(product) ? Results.Empty : Results.Ok(product);
+    }
+
+    private static async Task<IResult> ListForManagementAsync(
+        HttpContext context,
+        CatalogDbContext database,
+        CancellationToken cancellationToken,
+        string? q = null,
+        ProductStatus? status = null,
+        int page = 1,
+        int pageSize = 20)
+    {
+        // Never cached, and never served from the shared cache the storefront uses: this view
+        // includes drafts, and leaking one into a public cache entry would publish it.
+        context.Response.SetNoStore();
+
+        var request = new PageRequest(page, pageSize);
+        var query = database.Products.AsNoTracking();
+
+        if (status is { } wanted)
+        {
+            query = query.Where(p => p.Status == wanted);
+        }
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim();
+            query = query.Where(p =>
+                p.SearchVector.Matches(EF.Functions.PlainToTsQuery("english", term)) || p.Sku.Contains(term));
+        }
+
+        var total = await query.LongCountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
+            .ThenBy(p => p.Id)
+            .Skip(request.Skip)
+            .Take(request.PageSize)
+            .Select(p => new ManagedProductSummary(
+                p.Id, p.Sku, p.Name, p.Slug, p.Brand, p.Price, p.Currency, p.Status.ToString(), p.CategoryId,
+                p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault(),
+                p.CreatedAt, p.UpdatedAt))
+            .ToListAsync(cancellationToken);
+
+        return Results.Ok(new PagedResult<ManagedProductSummary>(items, request.Page, request.PageSize, total));
+    }
+
+    private static async Task<IResult> GetForManagementAsync(
+        Guid id,
+        HttpContext context,
+        CatalogDbContext database,
+        CancellationToken cancellationToken)
+    {
+        context.Response.SetNoStore();
+
+        var product = await database.Products
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => new ProductDetail(
+                p.Id, p.Sku, p.Name, p.Slug, p.Description, p.Brand, p.Price, p.Currency,
+                p.Status.ToString(), p.CategoryId,
+                p.Images.OrderBy(i => i.SortOrder)
+                    .Select(i => new ProductImageDto(i.Url, i.AltText, i.SortOrder))
+                    .ToList()))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return product is null
+            ? Error.NotFound("catalog.product.notFound", "No such product.").ToProblem()
+            : Results.Ok(product);
     }
 
     private static async Task<IResult> LookupAsync(

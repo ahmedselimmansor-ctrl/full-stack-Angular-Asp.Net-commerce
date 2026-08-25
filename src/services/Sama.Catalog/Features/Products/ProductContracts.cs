@@ -24,7 +24,10 @@ public sealed record ProductDetail(
     string? Brand,
     decimal Price,
     string Currency,
-    ProductStatus Status,
+    // Serialised via ToString() at the call site, matching Ordering and Payment. Exposing the
+    // enum directly would render it camelCase, leaving one service's casing out of step with
+    // the rest of the API.
+    string Status,
     Guid CategoryId,
     IReadOnlyList<ProductImageDto> Images);
 
@@ -50,6 +53,24 @@ public sealed record UpdateProductRequest(
     IReadOnlyList<ProductImageDto>? Images);
 
 public sealed record ChangePriceRequest(decimal Price, string Currency);
+
+/// <summary>
+/// Back-office view of a product. Carries the status and audit timestamps the storefront
+/// summary deliberately omits.
+/// </summary>
+public sealed record ManagedProductSummary(
+    Guid Id,
+    string Sku,
+    string Name,
+    string Slug,
+    string? Brand,
+    decimal Price,
+    string Currency,
+    string Status,
+    Guid CategoryId,
+    string? PrimaryImageUrl,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt);
 
 /// <summary>Service-to-service batch price lookup.</summary>
 public sealed record ProductLookupRequest(IReadOnlyList<Guid> ProductIds);
