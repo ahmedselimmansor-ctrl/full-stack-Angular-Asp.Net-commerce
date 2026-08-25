@@ -130,7 +130,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
     .grant { display: inline-block; }
     .grant select {
       font: inherit; font-size: 0.82rem; padding: 0.25rem 0.4rem;
-      border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
+      border: 1px solid var(--line-strong); border-radius: var(--sama-radius-sm);
       background: var(--surface); color: var(--text);
     }
     .note { font-size: 0.82rem; margin-block-start: 1rem; }

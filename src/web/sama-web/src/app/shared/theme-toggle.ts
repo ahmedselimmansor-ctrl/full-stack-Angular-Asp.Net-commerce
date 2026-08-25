@@ -37,7 +37,7 @@ import { LocaleService } from '../core/i18n';
       gap: 2px;
       margin: 0;
       padding: 3px;
-      border: 1px solid var(--line);
+      border: 1px solid var(--line-strong);
       border-radius: var(--sama-radius-pill);
       background: var(--surface-2);
     }

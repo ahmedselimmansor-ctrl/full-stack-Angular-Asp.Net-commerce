@@ -17,7 +17,11 @@
 :root {
   --sama-field: #0B1D28;        /* the dusk ground the hero and footer sit on */
   --sama-field-deep: #061219;
-  --sama-glaze: #0E8A80;        /* ceramic turquoise */
+  /* Deepened from #0E8A80 so the light theme's accent clears 4.5:1 as link text,
+     as chip text on its own wash, and behind a white button label -- the mid-tone
+     failed all three. A deeper glaze is closer to the Iznik ware it comes from
+     anyway; the dark theme keeps the bright variant below. */
+  --sama-glaze: #0C776E;        /* ceramic turquoise */
   --sama-glaze-bright: #2FD4C6;
   --sama-sodium: #B8761A;       /* street light */
   --sama-sodium-bright: #E9A13B;
@@ -47,11 +51,15 @@
   --bg-alt: #E2E7E4;
   --surface: #F7F9F7;
   --surface-2: #EEF2F0;
+  /* Two weights on purpose. --line is decorative: card edges and rules, where a
+     3:1 boundary would draw heavy boxes around everything. --line-strong is the
+     boundary of an actual control, which WCAG 1.4.11 requires to reach 3:1
+     against every surface it sits on, so form fields use it at rest. */
   --line: #D3DAD6;
-  --line-strong: #B9C3BE;
+  --line-strong: #838A87;
   --text: #0E1A1F;
-  --text-soft: #566A72;
-  --text-faint: #8397A0;
+  --text-soft: #425258;
+  --text-faint: #5D6B72;
 
   --accent: var(--sama-glaze);
   --accent-ink: #FFFFFF;
@@ -59,9 +67,9 @@
   --warm: var(--sama-sodium);
   --warm-wash: #F6E9D5;
 
-  --positive: #1F7A4C;
+  --positive: #1E784A;
   --positive-wash: #DCEEE3;
-  --caution: #9A6608;
+  --caution: #926108;
   --caution-wash: #F7EBD4;
   --critical: #A72F2F;
   --critical-wash: #F6DFDF;
@@ -80,10 +88,10 @@
     --surface: #0F212B;
     --surface-2: #142B36;
     --line: #1E3A47;
-    --line-strong: #2C505F;
+    --line-strong: #5A7682;
     --text: #E6EEF0;
     --text-soft: #9DB3BB;
-    --text-faint: #6D8892;
+    --text-faint: #7A939C;
 
     --accent: var(--sama-glaze-bright);
     --accent-ink: #052620;
@@ -109,10 +117,10 @@
   --surface: #0F212B;
   --surface-2: #142B36;
   --line: #1E3A47;
-  --line-strong: #2C505F;
+  --line-strong: #5A7682;
   --text: #E6EEF0;
   --text-soft: #9DB3BB;
-  --text-faint: #6D8892;
+  --text-faint: #7A939C;
 
   --accent: var(--sama-glaze-bright);
   --accent-ink: #052620;
@@ -254,7 +262,9 @@ a { color: inherit; }
 .field input, .field select, .field textarea, .input {
   inline-size: 100%;
   padding: 0.68rem 0.85rem;
-  border: 1px solid var(--line);
+  /* --line-strong, not --line: an input's boundary is what identifies it as a
+     control, so it has to clear 3:1. A decorative rule does not. */
+  border: 1px solid var(--line-strong);
   border-radius: var(--sama-radius-sm);
   background: var(--surface);
   color: var(--text);
@@ -263,7 +273,7 @@ a { color: inherit; }
   transition: border-color 120ms var(--sama-ease), box-shadow 120ms var(--sama-ease);
 }
 
-.field input:hover, .field select:hover { border-color: var(--line-strong); }
+.field input:hover, .field select:hover { border-color: var(--text-faint); }
 
 .field input:focus, .field select:focus, .field textarea:focus, .input:focus {
   outline: none;

@@ -84,6 +84,13 @@ jobs:
         working-directory: .
         run: ./scripts/check-csp-hash.sh
 
+      # Contrast is the one part of a design system that can be measured rather
+      # than argued about, and it is also the part that fails quietly: a muted
+      # grey that looks fine on the author's monitor can sit at 2.6:1.
+      - name: Design tokens meet WCAG AA contrast
+        working-directory: .
+        run: ./scripts/check-contrast.py
+
       - run: npm run build -- --configuration production
 
   android:

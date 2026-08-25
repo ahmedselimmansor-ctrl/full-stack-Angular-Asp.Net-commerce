@@ -704,7 +704,7 @@ cd src/web/sama-web && npm install && npm start
 flowchart TB
     e2e["25 end-to-end<br/>real browser, real stack, real saga"]
     int["20 integration<br/>real PostgreSQL and Redis in Testcontainers"]
-    unit["168 unit<br/>101 .NET, 47 Angular, 20 Kotlin"]
+    unit["170 unit<br/>101 .NET, 49 Angular, 20 Kotlin"]
 
     unit --> int --> e2e
 ```
@@ -717,6 +717,7 @@ flowchart TB
 | Kotlin unit | `cd src/mobile/sama-android && ./gradlew test` | Currency precision, wire-contract tolerance |
 | End-to-end | `cd tests/e2e && npm test` | Browse, register, checkout, saga settlement, back office |
 | Shell (API) | `./scripts/test-all.sh` | Five suites against the running stack |
+| Contrast | `./scripts/check-contrast.py` | Every rendered colour pairing against WCAG AA, both themes |
 
 The integration suite runs against real infrastructure on purpose. An in-memory substitute
 would pass while production failed: what needs proving is that a model-level filter really

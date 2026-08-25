@@ -14,6 +14,7 @@ the constraint the interface is built around.
 - [Localisation and direction](#localisation-and-direction)
 - [Bilingual product content](#bilingual-product-content)
 - [The pitfall that cost the most](#the-pitfall-that-cost-the-most)
+- [Contrast](#contrast)
 - [Layout and components](#layout-and-components)
 
 ## Direction
@@ -51,7 +52,7 @@ when someone flips the lights. Only the chrome adapts.
 | Token | Light | Dark | Used for |
 | --- | --- | --- | --- |
 | `--sama-field` | `#0B1D28` | `#0B1D28` | Hero and footer ground, both themes |
-| `--accent` | `#0E8A80` | `#2FD4C6` | Primary actions, active state, chart bars |
+| `--accent` | `#0C776E` | `#2FD4C6` | Primary actions, active state, chart bars |
 | `--warm` | `#B8761A` | `#E9A13B` | Caution, sale, the one warm note |
 | `--bg` | `#EBEEEC` | `#08131A` | Page ground — pale plaster, not cream |
 | `--surface` | `#F7F9F7` | `#0F212B` | Cards, tables, menus |
@@ -230,6 +231,52 @@ A related trap: `backdrop-filter` creates a stacking context. The header bar use
 it, which trapped the account menu's `z-index` inside the bar and let the dismiss
 scrim swallow clicks on the menu — including Sign out. The bar now carries its
 own `position` and `z-index` to sit above the scrim.
+
+## Contrast
+
+Colour is the one part of a design system that can be measured rather than argued
+about, and it is also the part that fails quietly. `scripts/check-contrast.py`
+resolves the tokens out of `styles.scss`, follows `var()` indirection, and checks
+every pairing the interface actually renders — 24 of them, in both themes —
+against WCAG 2.1 AA. It runs in CI.
+
+Writing it found ten failures in a palette that looked fine:
+
+| Pairing | Was | Needed |
+| --- | --- | --- |
+| Eyebrows and hints on the page (light) | 2.61:1 | 4.5:1 |
+| Eyebrows and hints on a card (light) | 2.88:1 | 4.5:1 |
+| Control borders (light) | 1.55:1 | 3:1 |
+| Control borders (dark) | 2.16:1 | 3:1 |
+| Positive chip (light) | 4.40:1 | 4.5:1 |
+| Caution chip (light) | 4.16:1 | 4.5:1 |
+| Hints on a card (dark) | 4.39:1 | 4.5:1 |
+| Accent link text on a card (light) | 4.00:1 | 4.5:1 |
+| Accent chip on its wash (light) | 3.54:1 | 4.5:1 |
+| White button label on the accent (light) | 4.23:1 | 4.5:1 |
+
+The last three are the brand colour itself. The mid-tone glaze failed as link
+text, as chip text, and behind a white button label; deepening it to `#0C776E`
+clears all three, and a deeper glaze is closer to the Iznik ware it comes from
+anyway. The dark theme keeps the bright variant, which already passed.
+
+Fixing the muted grey alone would have collapsed the three-step text ramp into
+two indistinguishable greys, so both steps moved together — `--text-soft` to
+`#425258` and `--text-faint` to `#5D6B72`, which restores a visible hierarchy
+with every step above 4.5:1.
+
+**Two border weights, on purpose.** `--line` is decorative — card edges, table
+wrappers, dividers — and sits below 3:1 deliberately, because drawing every card
+at 3:1 boxes the whole interface in heavy rules. `--line-strong` is the boundary
+of an actual control, which WCAG 1.4.11 requires to reach 3:1 against every
+surface it sits on.
+
+That distinction only helps if components pick the right one. Eight were reaching
+for the decorative weight — the header search field, the language and theme
+toggles, the sort and role selects, the product-image thumbnails, and two admin
+inputs — all drawing their boundary at about 1.3:1. `control-borders.spec.ts`
+now fails the build if a control does that again.
+
 
 ## Layout and components
 

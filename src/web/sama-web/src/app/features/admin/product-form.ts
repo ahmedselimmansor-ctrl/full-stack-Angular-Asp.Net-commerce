@@ -155,7 +155,7 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
     .hint { display: block; font-size: 0.78rem; margin-block-start: 0.25rem; }
     textarea {
       width: 100%; padding: 0.6rem 0.7rem; font: inherit;
-      border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
+      border: 1px solid var(--line-strong); border-radius: var(--sama-radius-sm);
       background: var(--surface); color: var(--text); resize: vertical;
     }
     .images {
@@ -168,7 +168,7 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
     .image-row { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 0.5rem; margin-block-end: 0.5rem; }
     .image-row input {
       padding: 0.5rem 0.6rem; font: inherit; font-size: 0.9rem;
-      border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
+      border: 1px solid var(--line-strong); border-radius: var(--sama-radius-sm);
       background: var(--surface); color: var(--text);
     }
     .form__actions { display: flex; gap: 0.5rem; margin-block-start: 0.5rem; }

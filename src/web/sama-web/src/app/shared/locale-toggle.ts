@@ -27,7 +27,7 @@ import { LocaleService } from '../core/i18n';
       align-items: baseline;
       gap: 0.3rem;
       padding: 0.32rem 0.7rem;
-      border: 1px solid var(--line);
+      border: 1px solid var(--line-strong);
       border-radius: var(--sama-radius-pill);
       background: var(--surface-2);
       color: var(--text);
