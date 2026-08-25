@@ -79,15 +79,27 @@ import { LocaleService, MoneyPipe, TranslatePipe } from '../../core/i18n';
     </div>
   `,
   styles: `
-    .layout { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: start; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .full { width: 100%; margin-top: 0.5rem; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: clamp(1.25rem, 3vw, 2rem);
+      align-items: start;
+    }
+
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); gap: 1rem; }
+    .full { inline-size: 100%; margin-block-start: 0.5rem; }
     .legal { font-size: 0.78rem; margin: 0.75rem 0 0; }
     .summary { position: sticky; inset-block-start: 7rem; }
     .summary__row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.35rem 0; font-size: 0.9rem; }
-    .summary__row--total { font-weight: 650; font-size: 1.05rem; border-top: 1px solid var(--line); margin-top: 0.4rem; padding-top: 0.7rem; }
-    .empty { text-align: center; padding: 3rem; }
-    .empty .btn { margin-top: 1rem; }
+    .summary__row--total {
+      font-weight: 600;
+      font-size: 1.05rem;
+      border-block-start: 1px solid var(--line);
+      margin-block-start: 0.4rem;
+      padding-block-start: 0.7rem;
+    }
+    .empty { text-align: center; padding-block: clamp(2.5rem, 6vw, 4rem); }
+    .empty .btn { margin-block-start: 1rem; }
     @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
   `,
 })

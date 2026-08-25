@@ -335,6 +335,31 @@ export const en = {
 
   'admin.users.emptyCopy': 'Try a different search term.',
 
+  'orders.placedOn': 'Placed {date}',
+  'orders.settling': 'We are confirming stock and payment. This page updates on its own.',
+  'orders.cancelling': 'Cancelling',
+  'orders.cancelledNotice': 'This order was cancelled',
+  'orders.cancelSuccess': 'Your order has been cancelled',
+  'orders.cancelReasonDefault': 'Cancelled by the customer.',
+
+  'account.emailConfirmed': 'Email confirmed',
+  'account.confirmedYes': 'Yes',
+  'account.confirmedNo': 'Not yet',
+  'account.roles': 'Roles',
+  'account.passwordSignsOut': 'Changing your password signs you out on every other device, including this one.',
+  'account.passwordHint': 'At least 12 characters, including a letter and a digit.',
+  'account.updating': 'Updating',
+  'account.sessionsCopy': 'Signing out everywhere revokes every refresh token and rotates your security stamp, so tokens already issued stop working immediately rather than at their next expiry.',
+  'account.signOutAll': 'Sign out on all devices',
+  'account.profileFailed': 'Your profile could not be loaded.',
+
+  'auth.signIn.busy': 'Signing in',
+  'auth.signIn.submit': 'Sign in',
+  'auth.register.busy': 'Creating your account',
+  'auth.register.submit': 'Create account',
+  'auth.newHere': 'New here?',
+  'auth.haveAccount': 'Already have an account?',
+
   'common.loading': 'Loading',
   'common.retry': 'Try again',
   'common.cancel': 'Cancel',

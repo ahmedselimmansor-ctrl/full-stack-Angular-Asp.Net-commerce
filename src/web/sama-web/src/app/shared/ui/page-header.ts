@@ -29,7 +29,7 @@ import { Component, input } from '@angular/core';
       justify-content: space-between;
       gap: 1.5rem;
       flex-wrap: wrap;
-      margin-bottom: 1.75rem;
+      margin-block-end: 1.75rem;
     }
     .header__text p { margin: 0.25rem 0 0; }
     .header__actions { display: flex; gap: 0.5rem; flex-shrink: 0; }

@@ -36,17 +36,20 @@ import { Component, computed, input, output, signal } from '@angular/core';
     }
     .dialog {
       position: fixed; z-index: 81;
+      /* Symmetric centring, so it needs no logical equivalent: translate is a
+         physical transform and pairing it with inset-inline-start would push the
+         dialog off-centre in RTL. */
       top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: min(420px, calc(100vw - 2rem));
+      inline-size: min(420px, calc(100vw - 2rem));
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--sama-radius);
       box-shadow: var(--sama-shadow);
       padding: 1.5rem;
     }
-    .dialog h2 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+    .dialog h2 { font-size: 1.15rem; margin-block-end: 0.4rem; }
     .dialog p { margin: 0; }
-    .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+    .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-block-start: 1.5rem; }
   `,
 })
 export class ConfirmDialog {

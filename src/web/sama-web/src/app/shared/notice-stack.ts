@@ -18,13 +18,14 @@ import { NotificationService } from '../core/notification.service';
   styles: `
     .stack {
       position: fixed;
-      bottom: 1rem;
-      right: 1rem;
+      /* Toasts sit on the trailing edge, which is the left one in Arabic. */
+      inset-block-end: 1rem;
+      inset-inline-end: 1rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
       z-index: 60;
-      max-width: min(420px, calc(100vw - 2rem));
+      max-inline-size: min(420px, calc(100vw - 2rem));
     }
     .notice {
       display: flex;
@@ -37,9 +38,9 @@ import { NotificationService } from '../core/notification.service';
       box-shadow: var(--sama-shadow);
       font-size: 0.9rem;
     }
-    .notice--error { border-left: 3px solid var(--critical); }
-    .notice--success { border-left: 3px solid var(--positive); }
-    .notice--info { border-left: 3px solid var(--accent); }
+    .notice--error { border-inline-start: 3px solid var(--critical); }
+    .notice--success { border-inline-start: 3px solid var(--positive); }
+    .notice--info { border-inline-start: 3px solid var(--accent); }
     button {
       background: none; border: 0; cursor: pointer;
       color: var(--text-soft); font-size: 1.1rem; line-height: 1; padding: 0;

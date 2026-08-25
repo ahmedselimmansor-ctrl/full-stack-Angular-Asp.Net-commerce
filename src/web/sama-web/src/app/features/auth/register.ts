@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
@@ -7,6 +7,7 @@ import { ApiError } from '../../core/interceptors/error.interceptor';
 
 @Component({
   selector: 'app-register',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, RouterLink, TranslatePipe],
   template: `
     <div class="page narrow">
@@ -32,28 +33,34 @@ import { ApiError } from '../../core/interceptors/error.interceptor';
             <span>{{ 'auth.password' | t }}</span>
             <input type="password" name="password" [(ngModel)]="password" required
                    autocomplete="new-password" [disabled]="busy()" />
-            <span class="hint muted">At least 12 characters, including a letter and a digit.</span>
+            <span class="hint muted">{{ 'account.passwordHint' | t }}</span>
             @if (fieldError('Password'); as message) { <span class="error-text">{{ message }}</span> }
           </label>
 
           @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
           <button type="submit" class="btn full" [disabled]="busy()">
-            {{ busy() ? 'Creating…' : 'Create account' }}
+            {{ (busy() ? 'auth.register.busy' : 'auth.register.submit') | t }}
           </button>
         </form>
 
         <p class="alt muted">
-          Already have an account? <a routerLink="/sign-in">Sign in</a>
+          {{ 'auth.haveAccount' | t }}
+          <a routerLink="/sign-in">{{ 'auth.signIn.submit' | t }}</a>
         </p>
       </div>
     </div>
   `,
   styles: `
-    .narrow { max-width: 440px; }
-    .full { width: 100%; margin-top: 0.5rem; }
+    .narrow {
+      max-inline-size: 440px;
+      padding-block: clamp(2rem, 6vw, 4rem);
+    }
+
+    .card h1 { font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem); margin-block-end: 0.35rem; }
+    .full { inline-size: 100%; margin-block-start: 0.5rem; }
     .alt { margin: 1.25rem 0 0; text-align: center; font-size: 0.9rem; }
-    .hint { display: block; font-size: 0.78rem; margin-top: 0.25rem; }
+    .hint { display: block; font-size: 0.78rem; margin-block-start: 0.25rem; }
   `,
 })
 export class RegisterPage {

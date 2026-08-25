@@ -336,6 +336,31 @@ export const ar: Translations = {
 
   'admin.users.emptyCopy': 'جرّب كلمة بحث مختلفة.',
 
+  'orders.placedOn': 'صدر بتاريخ {date}',
+  'orders.settling': 'نؤكّد توفّر القطع وإتمام الدفع. تتحدّث هذه الصفحة تلقائياً.',
+  'orders.cancelling': 'جارٍ الإلغاء',
+  'orders.cancelledNotice': 'أُلغي هذا الطلب',
+  'orders.cancelSuccess': 'تم إلغاء طلبك',
+  'orders.cancelReasonDefault': 'ألغاه العميل.',
+
+  'account.emailConfirmed': 'تأكيد البريد',
+  'account.confirmedYes': 'مؤكَّد',
+  'account.confirmedNo': 'غير مؤكَّد بعد',
+  'account.roles': 'الأدوار',
+  'account.passwordSignsOut': 'تغيير كلمة المرور ينهي جلستك على كل الأجهزة الأخرى، وعلى هذا الجهاز أيضاً.',
+  'account.passwordHint': 'اثنا عشر حرفاً على الأقل، تتضمّن حرفاً ورقماً.',
+  'account.updating': 'جارٍ التحديث',
+  'account.sessionsCopy': 'الخروج من كل الأجهزة يُبطل كل رموز التجديد ويُدوّر بصمة الأمان، فتتوقف الرموز الصادرة فوراً بدل أن تنتظر انتهاء صلاحيتها.',
+  'account.signOutAll': 'الخروج من كل الأجهزة',
+  'account.profileFailed': 'تعذّر تحميل ملفك الشخصي.',
+
+  'auth.signIn.busy': 'جارٍ تسجيل الدخول',
+  'auth.signIn.submit': 'تسجيل الدخول',
+  'auth.register.busy': 'جارٍ إنشاء حسابك',
+  'auth.register.submit': 'إنشاء حساب',
+  'auth.newHere': 'أول مرة هنا؟',
+  'auth.haveAccount': 'لديك حساب بالفعل؟',
+
   'common.loading': 'جارٍ التحميل',
   'common.retry': 'حاول مرة أخرى',
   'common.cancel': 'إلغاء',

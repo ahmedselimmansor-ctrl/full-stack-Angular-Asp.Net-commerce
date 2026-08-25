@@ -80,10 +80,12 @@ import { StatusChip, orderStatusChip } from '../../shared/ui/status-chip';
     .alert {
       display: flex; flex-direction: column; gap: 0.15rem;
       background: color-mix(in srgb, #b8860b 12%, transparent);
-      border-left: 3px solid #b8860b;
+      /* Token, not a raw hex: this stripe has to change with the theme like every
+         other caution surface, and it has to move to the leading edge in RTL. */
+      border-inline-start: 3px solid var(--caution);
       border-radius: var(--sama-radius-sm);
       padding: 0.8rem 1rem;
-      margin-bottom: 1.25rem;
+      margin-block-end: 1.25rem;
       font-size: 0.9rem;
     }
   `,

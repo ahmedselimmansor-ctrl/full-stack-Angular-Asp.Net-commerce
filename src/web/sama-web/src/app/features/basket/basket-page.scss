@@ -1,0 +1,178 @@
+.basket { padding-block: clamp(1.5rem, 4vw, 2.5rem); }
+
+.basket__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-block-end: clamp(1.25rem, 3vw, 2rem);
+}
+
+.basket__head h1 { margin: 0; }
+.basket__count { margin: 0; font-size: 0.95rem; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+
+/* ---- Lines -------------------------------------------------------------- */
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 96px auto 36px;
+  gap: clamp(0.75rem, 2vw, 1rem);
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--sama-radius);
+  padding: 0.85rem;
+  transition: border-color 140ms var(--sama-ease);
+}
+
+.line:hover { border-color: var(--line-strong); }
+
+.line__media {
+  inline-size: 76px;
+  block-size: 76px;
+  border-radius: var(--sama-radius-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.line__info { min-inline-size: 0; }
+.line__info p { margin: 0; }
+
+.line__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.line__sku, .line__unit { font-size: 0.8rem; }
+
+.line__qty { margin-block-end: 0; }
+
+/* `end` rather than `right`: in Arabic the trailing edge is the left one, and a
+   hard-coded right would pull the figure to the start of the line. */
+.line__total {
+  margin: 0;
+  font-weight: 600;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.line__remove {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--sama-radius-pill);
+  cursor: pointer;
+  color: var(--text-faint);
+  transition: background-color 140ms var(--sama-ease), color 140ms var(--sama-ease);
+}
+
+.line__remove:hover:not(:disabled) { background: var(--critical-wash); color: var(--critical); }
+.line__remove:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.line__remove svg {
+  inline-size: 17px;
+  block-size: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+/* ---- Summary ------------------------------------------------------------ */
+.summary {
+  position: sticky;
+  /* Clears the promise bar and the main bar; 5rem tucked the panel underneath. */
+  inset-block-start: 7rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.summary__title { margin: 0 0 0.35rem; font-size: 1.05rem; }
+
+.summary__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.summary__row--total {
+  font-weight: 600;
+  font-size: 1.1rem;
+  border-block-start: 1px solid var(--line);
+  margin-block-start: 0.35rem;
+  padding-block-start: 0.75rem;
+}
+
+.summary__note { font-size: 0.8rem; margin: 0.2rem 0 0.5rem; }
+
+.summary .btn { text-decoration: none; }
+
+.summary__clear {
+  justify-self: center;
+  margin-block-start: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  background: none;
+  border: 0;
+  border-radius: var(--sama-radius-sm);
+  color: var(--text-faint);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.summary__clear:hover:not(:disabled) { color: var(--critical); }
+.summary__clear:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Empty -------------------------------------------------------------- */
+.empty {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  text-align: center;
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+
+.empty h2 { margin: 0; }
+.empty p { margin: 0; max-inline-size: 40ch; }
+.empty .btn { margin-block-start: 0.75rem; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .summary { position: static; }
+}
+
+@media (max-width: 620px) {
+  .line {
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'media info remove'
+      'media qty  total';
+    row-gap: 0.6rem;
+  }
+
+  .line__media { grid-area: media; inline-size: 60px; block-size: 60px; align-self: start; }
+  .line__info { grid-area: info; }
+  .line__qty { grid-area: qty; }
+  .line__total { grid-area: total; }
+  .line__remove { grid-area: remove; align-self: start; }
+}

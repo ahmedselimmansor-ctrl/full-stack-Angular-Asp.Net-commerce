@@ -45,7 +45,7 @@ test.describe('checkout', () => {
     // payment was taken, and both replies made it back through Pub/Sub. Scoped to the status
     // chip: "Cancelled" also appears in the cancellation banner, and an unscoped text match
     // would resolve to two elements.
-    const status = page.locator('app-order-status-chip');
+    const status = page.locator('app-status-chip');
     await expect(status).toHaveText(/Confirmed|Cancelled/, { timeout: 60_000 });
     await expect(status).toHaveText('Confirmed');
   });
@@ -70,7 +70,7 @@ test.describe('checkout', () => {
     await page.getByRole('button', { name: /place order/i }).click();
 
     await expect(page).toHaveURL(/\/orders\//, { timeout: 30_000 });
-    await expect(page.locator('app-order-status-chip')).toHaveText('Confirmed', { timeout: 60_000 });
+    await expect(page.locator('app-status-chip')).toHaveText('Confirmed', { timeout: 60_000 });
 
     await page.goto('/basket');
     await expect(page.getByText(/basket is empty|nothing here yet/i)).toBeVisible({ timeout: 30_000 });

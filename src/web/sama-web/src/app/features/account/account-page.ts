@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -13,19 +13,21 @@ import { PageHeader } from '../../shared/ui/page-header';
 
 @Component({
   selector: 'app-account',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, RouterLink, PageHeader, HasPermissionDirective, TranslatePipe],
   template: `
     <div class="page narrow">
-      <app-page-header title="Your account" [description]="auth.currentUser()?.email ?? ''" />
+      <app-page-header [title]="'account.title' | t" [description]="auth.currentUser()?.email ?? ''" />
 
       @if (auth.currentUser(); as profile) {
         <section class="card">
           <h2>{{ 'account.profile' | t }}</h2>
           <dl class="details">
-            <dt>Name</dt><dd>{{ profile.displayName }}</dd>
-            <dt>Email</dt><dd>{{ profile.email }}</dd>
-            <dt>Email confirmed</dt><dd>{{ profile.emailConfirmed ? 'Yes' : 'Not yet' }}</dd>
-            <dt>Roles</dt>
+            <dt>{{ 'account.name' | t }}</dt><dd>{{ profile.displayName }}</dd>
+            <dt>{{ 'account.email' | t }}</dt><dd>{{ profile.email }}</dd>
+            <dt>{{ 'account.emailConfirmed' | t }}</dt>
+            <dd>{{ (profile.emailConfirmed ? 'account.confirmedYes' : 'account.confirmedNo') | t }}</dd>
+            <dt>{{ 'account.roles' | t }}</dt>
             <dd>
               @for (role of profile.roles; track role) {
                 <span class="tag">{{ label(role) }}</span>
@@ -34,18 +36,16 @@ import { PageHeader } from '../../shared/ui/page-header';
           </dl>
 
           <div class="links">
-            <a class="btn btn--ghost" routerLink="/orders">Your orders</a>
+            <a class="btn btn--ghost" routerLink="/orders">{{ 'orders.title' | t }}</a>
             <a *samaHasPermission="adminPermissions" class="btn btn--ghost" routerLink="/admin">
-              Back office
+              {{ 'admin.title' | t }}
             </a>
           </div>
         </section>
 
         <section class="card">
           <h2>{{ 'account.changePassword' | t }}</h2>
-          <p class="muted">
-            Changing your password signs you out on every other device, including this one.
-          </p>
+          <p class="muted">{{ 'account.passwordSignsOut' | t }}</p>
 
           <form (submit)="changePassword($event)" novalidate>
             <label class="field">
@@ -59,51 +59,48 @@ import { PageHeader } from '../../shared/ui/page-header';
               <span>{{ 'account.newPassword' | t }}</span>
               <input type="password" name="next" [(ngModel)]="newPassword"
                      autocomplete="new-password" [disabled]="busy()" required />
-              <span class="hint muted">At least 12 characters, including a letter and a digit.</span>
+              <span class="hint muted">{{ 'account.passwordHint' | t }}</span>
               @if (fieldError('NewPassword'); as m) { <span class="error-text">{{ m }}</span> }
             </label>
 
             @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
             <button type="submit" class="btn" [disabled]="busy()">
-              {{ busy() ? 'Updating…' : 'Change password' }}
+              {{ (busy() ? 'account.updating' : 'account.changePassword') | t }}
             </button>
           </form>
         </section>
 
         <section class="card">
           <h2>{{ 'account.sessions' | t }}</h2>
-          <p class="muted">
-            Signing out everywhere revokes every refresh token and rotates your security stamp,
-            so tokens already issued stop working immediately rather than at their next expiry.
-          </p>
+          <p class="muted">{{ 'account.sessionsCopy' | t }}</p>
           <button type="button" class="btn btn--danger" [disabled]="busy()"
                   (click)="signOutEverywhere()">
-            Sign out on all devices
+            {{ 'account.signOutAll' | t }}
           </button>
         </section>
       } @else {
         <div class="card">
-          <p class="muted">Your profile could not be loaded.</p>
+          <p class="muted">{{ 'account.profileFailed' | t }}</p>
         </div>
       }
     </div>
   `,
   styles: `
-    .narrow { max-width: 640px; }
-    .card { margin-bottom: 1.25rem; }
-    .card h2 { font-size: 1.05rem; margin-bottom: 0.5rem; }
-    .details { display: grid; grid-template-columns: 150px 1fr; gap: 0.4rem 1rem; margin: 0 0 1.25rem; }
+    .narrow { max-inline-size: 640px; padding-block: clamp(1.5rem, 4vw, 2.5rem); }
+    .card { margin-block-end: 1.25rem; }
+    .card h2 { font-size: 1.05rem; margin-block-end: 0.5rem; }
+    .details { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0.4rem 1rem; margin: 0 0 1.25rem; }
     .details dt { color: var(--text-soft); font-size: 0.88rem; }
     .details dd { margin: 0; }
     .tag {
-      display: inline-block; padding: 0.1rem 0.5rem; margin-right: 0.3rem;
-      border-radius: 999px; background: var(--accent-wash); color: var(--accent);
+      display: inline-block; padding: 0.1rem 0.5rem; margin-inline-end: 0.3rem;
+      border-radius: var(--sama-radius-pill); background: var(--accent-wash); color: var(--accent);
       font-size: 0.76rem; font-weight: 600;
     }
     .links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .links a { text-decoration: none; }
-    .hint { display: block; font-size: 0.78rem; margin-top: 0.25rem; }
+    .hint { display: block; font-size: 0.78rem; margin-block-start: 0.25rem; }
     @media (max-width: 560px) { .details { grid-template-columns: 1fr; gap: 0.1rem 0; } }
   `,
 })

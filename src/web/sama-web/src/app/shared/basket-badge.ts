@@ -34,7 +34,10 @@ import { BasketStore } from '../core/basket-store';
     .basket:hover { background: var(--surface-2); }
     .basket__count {
       position: absolute;
-      top: 0; right: 0;
+      /* Follows the reading direction so the count does not sit over the icon
+         when the layout mirrors. */
+      inset-block-start: 0;
+      inset-inline-end: 0;
       min-width: 17px;
       padding: 0 4px;
       border-radius: 9px;

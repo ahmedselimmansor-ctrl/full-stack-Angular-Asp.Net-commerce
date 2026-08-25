@@ -6,10 +6,10 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1rem;
-  margin-bottom: 1.25rem;
+  margin-block-end: 1.25rem;
 }
 
-.filters .field { margin-bottom: 0; }
+.filters .field { margin-block-end: 0; }
 
 /* The wrapper scrolls, not the page. A wide table must never make the whole document
    scroll sideways. */
@@ -27,7 +27,7 @@ table {
 }
 
 thead th {
-  text-align: left;
+  text-align: start;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -48,7 +48,7 @@ tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover { background: var(--surface-2); }
 
 /* Tabular figures so columns of numbers line up on the decimal. */
-.numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.numeric { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
 
 .col-image { width: 52px; }
@@ -58,7 +58,7 @@ tbody tr:hover { background: var(--surface-2); }
 .name:hover { text-decoration: underline; }
 .brand { display: block; font-size: 0.78rem; }
 
-.actions { text-align: right; white-space: nowrap; }
+.actions { text-align: end; white-space: nowrap; }
 
 .link {
   background: none;
@@ -79,7 +79,7 @@ tbody tr:hover { background: var(--surface-2); }
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-block-start: 1.5rem;
 }
 
 .sr-only {

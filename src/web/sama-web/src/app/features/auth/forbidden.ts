@@ -17,7 +17,7 @@ import { TranslatePipe } from '../../core/i18n';
   styles: `
     .narrow { max-width: 460px; }
     .card { text-align: center; padding: 2.5rem; }
-    .btn { margin-top: 1rem; }
+    .btn { margin-block-start: 1rem; }
   `,
 })
 export class ForbiddenPage {}

@@ -100,11 +100,11 @@ import { type ChipSpec, StatusChip } from '../../shared/ui/status-chip';
   styles: `
     .toggle { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; }
     .inline {
-      width: 80px; padding: 0.3rem 0.4rem; font: inherit; text-align: right;
+      width: 80px; padding: 0.3rem 0.4rem; font: inherit; text-align: end;
       border: 1px solid var(--accent); border-radius: var(--sama-radius-sm);
       background: var(--surface); color: var(--text);
     }
-    .note { font-size: 0.82rem; margin-top: 1rem; }
+    .note { font-size: 0.82rem; margin-block-start: 1rem; }
   `,
 })
 export class AdminStockTable {

@@ -94,8 +94,8 @@ import { Skeleton } from '../../shared/ui/skeleton';
     .tree li:last-child { border-bottom: 0; }
     .tree__name { font-weight: 550; }
     .tree__slug { font-size: 0.8rem; }
-    .full { width: 100%; margin-top: 0.5rem; }
-    .hint { display: block; font-size: 0.78rem; margin-top: 0.25rem; }
+    .full { width: 100%; margin-block-start: 0.5rem; }
+    .hint { display: block; font-size: 0.78rem; margin-block-start: 0.25rem; }
     @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
   `,
 })

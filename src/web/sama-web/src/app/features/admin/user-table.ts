@@ -133,7 +133,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
       border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
       background: var(--surface); color: var(--text);
     }
-    .note { font-size: 0.82rem; margin-top: 1rem; }
+    .note { font-size: 0.82rem; margin-block-start: 1rem; }
   `,
 })
 export class AdminUserTable {

@@ -1,15 +1,15 @@
-import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { OrderService } from '../../core/api.service';
 import type { OrderDetail } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { MoneyPipe, TranslatePipe } from '../../core/i18n';
-import { OrderStatusChip } from './order-status-chip';
+import { LocaleService, LocalDatePipe, MoneyPipe, TranslatePipe } from '../../core/i18n';
+import { orderStatusChip, StatusChip } from '../../shared/ui/status-chip';
 
 @Component({
   selector: 'app-order-detail',
-  imports: [RouterLink, DatePipe, MoneyPipe, OrderStatusChip, TranslatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, LocalDatePipe, MoneyPipe, StatusChip, TranslatePipe],
   template: `
     <div class="page">
       @if (loading()) {
@@ -22,20 +22,18 @@ import { OrderStatusChip } from './order-status-chip';
         <header class="head">
           <div>
             <h1>{{ detail.orderNumber }}</h1>
-            <p class="muted">Placed {{ detail.createdAt | date: 'medium' }}</p>
+            <p class="muted">{{ locale.t('orders.placedOn', { date: locale.formatDate(detail.createdAt) }) }}</p>
           </div>
-          <app-order-status-chip [status]="detail.status" />
+          <app-status-chip [spec]="chip(detail.status)" />
         </header>
 
         @if (isSettling()) {
-          <p class="settling" role="status">
-            We’re confirming stock and payment. This page updates on its own.
-          </p>
+          <p class="settling" role="status">{{ 'orders.settling' | t }}</p>
         }
 
         @if (detail.status === 'Cancelled' && detail.cancellationReason) {
           <div class="card cancelled">
-            <strong>Cancelled</strong>
+            <strong>{{ 'orders.cancelledNotice' | t }}</strong>
             <p class="muted">{{ detail.cancellationReason }}</p>
           </div>
         }
@@ -46,7 +44,7 @@ import { OrderStatusChip } from './order-status-chip';
             <ul class="lines">
               @for (line of detail.lines; track line.productId) {
                 <li>
-                  <span class="lines__name">{{ line.quantity }} × {{ line.name }}</span>
+                  <span class="lines__name">{{ locale.formatNumber(line.quantity) }} × {{ line.name }}</span>
                   <span class="muted lines__sku">{{ line.sku }}</span>
                   <span class="lines__total">{{ line.lineTotal | money: detail.currency }}</span>
                 </li>
@@ -69,7 +67,7 @@ import { OrderStatusChip } from './order-status-chip';
             @if (canCancel()) {
               <button type="button" class="btn btn--danger full"
                       [disabled]="cancelling()" (click)="cancel(detail)">
-                {{ cancelling() ? 'Cancelling…' : 'Cancel order' }}
+                {{ (cancelling() ? 'orders.cancelling' : 'orders.cancel') | t }}
               </button>
             }
           </aside>
@@ -83,32 +81,41 @@ import { OrderStatusChip } from './order-status-chip';
     </div>
   `,
   styles: `
-    .crumbs { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 1rem; display: flex; gap: 0.4rem; }
+    .crumbs { font-size: 0.85rem; color: var(--text-soft); margin-block-end: 1rem; display: flex; gap: 0.4rem; }
     .crumbs a { text-decoration: none; }
-    .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+    .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: 1.25rem; }
     .head p { margin: 0; }
     .settling {
       background: var(--accent-wash); color: var(--accent);
       padding: 0.7rem 1rem; border-radius: var(--sama-radius-sm); font-size: 0.9rem; margin: 0 0 1.25rem;
     }
-    .cancelled { border-left: 3px solid var(--critical); margin-bottom: 1.25rem; }
+    /* The rule marks the leading edge, so it has to follow the reading
+       direction rather than sit on the physical left. */
+    .cancelled {
+      border-inline-start: 3px solid var(--critical);
+      margin-block-end: 1.25rem;
+    }
     .cancelled p { margin: 0.25rem 0 0; }
     .layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
     .lines { list-style: none; margin: 0 0 1rem; padding: 0; }
-    .lines li { display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+    .lines li { display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; padding: 0.5rem 0; border-block-end: 1px solid var(--line); }
     .lines__sku { font-size: 0.8rem; }
     .lines__total { font-weight: 600; }
     .total { display: flex; justify-content: space-between; font-weight: 650; font-size: 1.05rem; }
-    address { font-style: normal; line-height: 1.7; margin-bottom: 1rem; }
-    .full { width: 100%; }
+    address { font-style: normal; line-height: 1.7; margin-block-end: 1rem; }
+    .full { inline-size: 100%; }
     .missing { text-align: center; padding: 3rem; }
-    .missing .btn { margin-top: 1rem; }
+    .missing .btn { margin-block-start: 1rem; }
     @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
   `,
 })
 export class OrderDetailPage implements OnDestroy {
   private readonly orders = inject(OrderService);
   private readonly notifications = inject(NotificationService);
+  protected readonly locale = inject(LocaleService);
+
+  /** The same mapping the back office uses, so a status cannot read two ways. */
+  protected readonly chip = orderStatusChip;
 
   readonly id = input.required<string>();
 
@@ -140,8 +147,10 @@ export class OrderDetailPage implements OnDestroy {
   protected async cancel(detail: OrderDetail): Promise<void> {
     this.cancelling.set(true);
     try {
-      this.order.set(await this.orders.cancel(detail.id, 'Cancelled by the customer.'));
-      this.notifications.success('Your order has been cancelled.');
+      this.order.set(
+        await this.orders.cancel(detail.id, this.locale.t('orders.cancelReasonDefault')),
+      );
+      this.notifications.success(this.locale.t('orders.cancelSuccess'));
     } catch {
       // Reported by the error interceptor.
     } finally {

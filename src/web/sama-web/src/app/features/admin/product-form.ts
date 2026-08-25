@@ -128,7 +128,7 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
   styles: `
     .form { display: flex; flex-direction: column; gap: 0.25rem; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .hint { display: block; font-size: 0.78rem; margin-top: 0.25rem; }
+    .hint { display: block; font-size: 0.78rem; margin-block-start: 0.25rem; }
     textarea {
       width: 100%; padding: 0.6rem 0.7rem; font: inherit;
       border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
@@ -141,13 +141,13 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
       margin: 0.5rem 0 1rem;
     }
     .images legend { font-size: 0.85rem; font-weight: 600; padding: 0 0.4rem; }
-    .image-row { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .image-row { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 0.5rem; margin-block-end: 0.5rem; }
     .image-row input {
       padding: 0.5rem 0.6rem; font: inherit; font-size: 0.9rem;
       border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
       background: var(--surface); color: var(--text);
     }
-    .form__actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .form__actions { display: flex; gap: 0.5rem; margin-block-start: 0.5rem; }
     .form__actions a { text-decoration: none; }
     @media (max-width: 720px) {
       .row, .image-row { grid-template-columns: 1fr; }

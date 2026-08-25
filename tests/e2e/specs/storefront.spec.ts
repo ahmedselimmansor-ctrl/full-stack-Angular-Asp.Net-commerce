@@ -33,12 +33,13 @@ test.describe('storefront', () => {
 
     await expect(page.getByRole('heading', { level: 1, name: /clothing/i })).toBeVisible();
 
+    // Wait for the grid before counting. `count()` resolves immediately, so
+    // calling it while the skeletons are still up reads zero and the test fails
+    // on timing rather than on anything being wrong.
+    await expect(page.locator('article.tile').first()).toBeVisible();
+
     const count = await page.locator('article.tile').count();
     expect(count).toBeGreaterThan(0);
-
-    // Every seeded clothing item is priced in EGP; a stray department would show
-    // a product the category filter should have excluded.
-    await expect(page.locator('article.tile').first()).toBeVisible();
   });
 
   test('reports an empty search rather than showing a bare page', async ({ page }) => {

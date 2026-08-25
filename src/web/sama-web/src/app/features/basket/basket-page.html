@@ -1,0 +1,104 @@
+<div class="page basket">
+  <header class="basket__head">
+    <h1>{{ 'basket.title' | t }}</h1>
+    @if (!store.isEmpty() && store.basket() !== null) {
+      <p class="muted basket__count">
+        {{
+          store.itemCount() === 1
+            ? ('basket.itemsOne' | t)
+            : locale.t('basket.items', { count: locale.formatNumber(store.itemCount()) })
+        }}
+      </p>
+    }
+  </header>
+
+  @if (store.basket() === null) {
+    <p class="muted" aria-busy="true">{{ 'common.loading' | t }}</p>
+  } @else if (store.isEmpty()) {
+    <!-- An empty screen is an invitation to act, not a dead end. -->
+    <div class="card empty">
+      <h2>{{ 'basket.empty.title' | t }}</h2>
+      <p class="muted">{{ 'basket.empty.copy' | t }}</p>
+      <a class="btn" routerLink="/shop">{{ 'basket.empty.action' | t }}</a>
+    </div>
+  } @else {
+    <div class="layout">
+      <ul class="lines">
+        @for (line of store.basket()!.items; track line.productId) {
+          <li class="line">
+            <!-- Not a link: the basket line carries a SKU, and the product route
+                 takes a slug, so linking here would 404 on every row. -->
+            <div class="line__media">
+              <app-product-image [source]="line.imageUrl" [alt]="line.name" />
+            </div>
+
+            <div class="line__info">
+              <p class="line__name">{{ line.name }}</p>
+              <p class="line__sku faint">
+                {{ 'product.sku' | t }} <span class="mono">{{ line.sku }}</span>
+              </p>
+              <p class="line__unit muted">
+                {{ locale.t('basket.each', { price: locale.formatMoney(line.unitPrice, line.currency) }) }}
+              </p>
+            </div>
+
+            <label class="line__qty field">
+              <span>{{ 'basket.qty' | t }}</span>
+              <select
+                [value]="line.quantity"
+                [disabled]="store.isBusy()"
+                (change)="changeQuantity(line, $event)"
+              >
+                @for (n of quantities; track n) {
+                  <option [value]="n">{{ locale.formatNumber(n) }}</option>
+                }
+              </select>
+            </label>
+
+            <p class="line__total tabular">{{ line.lineTotal | money: line.currency }}</p>
+
+            <button
+              type="button"
+              class="line__remove"
+              [disabled]="store.isBusy()"
+              (click)="remove(line)"
+              [attr.aria-label]="locale.t('basket.removeNamed', { name: line.name })"
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M6 6l8 8M14 6l-8 8" />
+              </svg>
+            </button>
+          </li>
+        }
+      </ul>
+
+      <aside class="summary card">
+        <h2 class="summary__title">{{ 'basket.summary' | t }}</h2>
+
+        <div class="summary__row">
+          <span>{{ 'basket.itemCount' | t }}</span>
+          <span class="tabular">{{ locale.formatNumber(store.itemCount()) }}</span>
+        </div>
+
+        <div class="summary__row summary__row--total">
+          <span>{{ 'basket.subtotal' | t }}</span>
+          <span class="tabular">{{ store.subtotal() | money: store.currency() }}</span>
+        </div>
+
+        <p class="muted summary__note">{{ 'basket.shippingNote' | t }}</p>
+
+        <a class="btn btn--block" routerLink="/checkout">{{ 'basket.goToCheckout' | t }}</a>
+        <a class="btn btn--ghost btn--block" routerLink="/shop">{{ 'basket.continue' | t }}</a>
+
+        <button
+          type="button"
+          class="summary__clear"
+          [disabled]="store.isBusy()"
+          (click)="store.clear()"
+        >
+          {{ 'basket.empty.action2' | t }}
+        </button>
+      </aside>
+    </div>
+  }
+</div>

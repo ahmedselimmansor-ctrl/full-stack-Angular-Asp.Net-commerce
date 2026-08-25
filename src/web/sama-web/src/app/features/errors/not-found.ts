@@ -37,7 +37,7 @@ import { TranslatePipe } from '../../core/i18n';
       color: var(--accent);
       opacity: 0.45;
     }
-    .actions { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+    .actions { display: flex; gap: 0.5rem; justify-content: center; margin-block-start: 1.5rem; flex-wrap: wrap; }
     .actions a { text-decoration: none; }
   `,
 })
