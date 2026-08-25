@@ -1,0 +1,56 @@
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+artifacts/
+TestResults/
+coverage/
+*.received.*
+
+# ---- Node / Angular ----
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# ---- Android / Kotlin ----
+.gradle/
+build/
+!build/docker/
+local.properties
+*.apk
+*.aab
+*.keystore
+.cxx/
+
+# ---- Terraform ----
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+crash.log
+
+# ---- Secrets & local env ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+!**/testdata/*.key
+secrets/
+appsettings.Local.json
+sa-key*.json
+
+# ---- Editors / OS ----
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

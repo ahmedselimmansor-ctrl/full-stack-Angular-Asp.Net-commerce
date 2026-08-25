@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Sama.Shared.Kernel</RootNamespace>
+  </PropertyGroup>
+</Project>

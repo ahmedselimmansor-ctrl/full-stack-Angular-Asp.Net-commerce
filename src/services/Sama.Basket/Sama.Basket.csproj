@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Sama.Basket</RootNamespace>
+    <IsServiceProject>true</IsServiceProject>
+    <UserSecretsId>sama-basket</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../shared/Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Security/Sama.Shared.Security.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Messaging/Sama.Shared.Messaging.csproj" />
+  </ItemGroup>
+</Project>

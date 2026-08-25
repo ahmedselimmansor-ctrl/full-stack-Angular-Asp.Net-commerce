@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Sama.Shared.Messaging</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Cloud.PubSub.V1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
+    <ProjectReference Include="../Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

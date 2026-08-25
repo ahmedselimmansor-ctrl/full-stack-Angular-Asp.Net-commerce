@@ -1,0 +1,44 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Analysis. Warnings are errors so the tree stays clean; CI enforces the same. -->
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- CA1848 (LoggerMessage delegates) and CA2007 (ConfigureAwait) are noise in an
+         ASP.NET Core app with no sync-context; CA1515 wants internal-by-default which
+         fights the public contract types these libraries exist to expose. CA1716 flags
+         names that collide with *Visual Basic* keywords ("Shared", "Error") - this is a
+         C#-only codebase, so that trade is not worth renaming the domain vocabulary.
+         CA1000 forbids statics on generic types, which rules out the Empty()/Success()
+         factory idiom used throughout. CA1873 assumes log arguments are expensive; ours
+         are property reads, and guarding every Information/Error call with IsEnabled would
+         cost more readability than it saves (the genuinely hot Debug paths are guarded by
+         hand). CA1711 reserves the "EventHandler" suffix for .NET event delegates, which
+         would rename the standard messaging vocabulary for no benefit. -->
+    <NoWarn>$(NoWarn);CA1848;CA2007;CA1515;CA1812;CA1716;CA1000;CA1873;CA1711</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>portable</DebugType>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Every service container runs as a distroless non-root image; trimming stays off
+       because EF Core's runtime model building is not trim-safe. -->
+  <PropertyGroup Condition="'$(IsServiceProject)' == 'true'">
+    <PublishTrimmed>false</PublishTrimmed>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+</Project>

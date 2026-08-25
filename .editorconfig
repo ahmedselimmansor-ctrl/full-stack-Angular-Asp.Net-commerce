@@ -1,0 +1,38 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,csx}]
+indent_size = 4
+dotnet_sort_system_directives_first = true
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_prefer_braces = true:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1848.severity = none
+
+[*.{ts,html,scss,css,json,yml,yaml,js}]
+indent_size = 2
+
+[*.{kt,kts}]
+indent_size = 4
+
+[*.{tf,tfvars}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+# EF Core scaffolds these; they are machine-written and rewritten on every schema change,
+# so style and performance rules there produce churn rather than better code.
+[**/Migrations/*.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA1062.severity = none

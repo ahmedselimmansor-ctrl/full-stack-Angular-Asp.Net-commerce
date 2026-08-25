@@ -1,0 +1,50 @@
+# Local development dependencies. Mirrors the managed GCP services the platform uses in
+# production: Cloud SQL for PostgreSQL, Memorystore for Redis, and Pub/Sub.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sama-postgres
+    environment:
+      POSTGRES_USER: sama
+      POSTGRES_PASSWORD: sama_dev_password
+      POSTGRES_DB: sama
+    ports:
+      # Host port shifted off the default: another project on this machine already owns 5432.
+      # Container-internal port stays 5432 so service-to-service URLs are unchanged.
+      - "55432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sama -d sama"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: sama-redis
+    # Bound memory with an LRU policy, so local behaviour matches a Memorystore instance
+    # under pressure rather than growing until the host swaps.
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly no
+    ports:
+      # Shifted for the same reason as Postgres above.
+      - "56379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    container_name: sama-pubsub
+    command: >
+      gcloud beta emulators pubsub start
+      --project=sama-local
+      --host-port=0.0.0.0:8085
+    ports:
+      - "8085:8085"
+
+volumes:
+  postgres-data:

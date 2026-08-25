@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Sama.Identity</RootNamespace>
+    <IsServiceProject>true</IsServiceProject>
+    <UserSecretsId>sama-identity</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../shared/Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Security/Sama.Shared.Security.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Messaging/Sama.Shared.Messaging.csproj" />
+  </ItemGroup>
+</Project>
