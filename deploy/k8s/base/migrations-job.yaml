@@ -1,0 +1,52 @@
+# Schema migrations run as a Job before the new version's pods roll out.
+#
+# Applying migrations from application startup instead would have every replica race to run
+# them simultaneously, and would couple "the pod is up" to "the schema changed" — so a failed
+# migration would present as a crash-looping deployment rather than a failed job with a log.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sama-migrations
+  namespace: sama
+  annotations:
+    # Run as a pre-sync hook by the deployment tool, ahead of the Deployments it supports.
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 2
+  # Cleaned up automatically an hour after finishing, leaving the logs available meanwhile.
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sama-migrations
+        app.kubernetes.io/part-of: sama
+    spec:
+      restartPolicy: Never
+      serviceAccountName: sama-workload
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: sama/migrations:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          envFrom:
+            - configMapRef:
+                name: sama-shared
+            - secretRef:
+                name: sama-migrations-secrets
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: { sizeLimit: 64Mi }

@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Environments are separated by namespace rather than by a name suffix.
+#
+# A nameSuffix renames the ExternalSecret *resource* but not the `spec.target.name` inside it,
+# so the Secret it actually creates would keep the unsuffixed name while the Deployments
+# referenced the suffixed one — a mismatch that only shows up as pods failing to start.
+
+namespace: sama-staging
+
+resources:
+  - ../../base
+
+patches:
+  # Staging exists to catch problems, not to carry load: two replicas, lower ceilings.
+  - target:
+      kind: HorizontalPodAutoscaler
+      labelSelector: app.kubernetes.io/part-of=sama
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6
+
+configMapGenerator:
+  - name: sama-shared
+    behavior: merge
+    literals:
+      - PubSub__TopicPrefix=sama-staging
+      # Full sampling: staging traffic is low enough to trace completely, which is what makes
+      # it useful for diagnosing a problem before it reaches production.
+      - Telemetry__SamplingRatio=1.0
+      - Jwt__Authority=https://api-staging.sama.example
+      - Jwt__Issuer=https://api-staging.sama.example
+
+# The Namespace object is cluster-scoped, so the `namespace:` field above does not rename it.
+patches:
+  - target: { kind: Namespace, name: sama }
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: sama-staging

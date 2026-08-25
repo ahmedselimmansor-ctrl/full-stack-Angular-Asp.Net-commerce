@@ -1,0 +1,63 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sama
+
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/part-of: sama
+      app.kubernetes.io/managed-by: kustomize
+
+resources:
+  - namespace.yaml
+  - network-policy.yaml
+  - config.yaml
+  - external-secrets.yaml
+  - gateway.yaml
+  - identity.yaml
+  - catalog.yaml
+  - basket.yaml
+  - ordering.yaml
+  - inventory.yaml
+  - payment.yaml
+  - web.yaml
+  - migrations-job.yaml
+  - ingress.yaml
+
+# Generated rather than declared as a plain resource, for two reasons: overlays can merge
+# environment-specific values into it, and the generated name carries a content hash, so
+# changing configuration rolls the pods instead of leaving them on stale values until
+# something else happens to restart them.
+configMapGenerator:
+  - name: sama-shared
+    literals:
+      - GoogleCloud__ProjectId=PLACEHOLDER_PROJECT_ID
+      - PubSub__ProjectId=PLACEHOLDER_PROJECT_ID
+      - PubSub__TopicPrefix=sama-prod
+      - Jwt__Authority=https://api.sama.example
+      - Jwt__Issuer=https://api.sama.example
+      - Jwt__Audience=sama-api
+      - Jwt__RequireHttpsMetadata=true
+      - Tenancy__DefaultTenantId=PLACEHOLDER_TENANT_ID
+      # The load balancer overwrites this header on every request, unlike X-Forwarded-For
+      # which it merely appends to. Trusting the appendable one would let a caller spoof
+      # their address and mint a fresh rate-limit bucket per request.
+      - ClientIp__TrustedHeader=X-Client-IP
+      - ClientIp__TrustProxyHeader=true
+      - Cors__AllowedOrigins__0=https://sama.example
+      - Cors__AllowedOrigins__1=https://www.sama.example
+      - Telemetry__SamplingRatio=0.1
+      - Serilog__MinimumLevel__Default=Information
+      - Serilog__MinimumLevel__Override__Microsoft.AspNetCore=Warning
+
+images:
+  - { name: sama/gateway,    newName: PLACEHOLDER_REGISTRY/gateway,    newTag: latest }
+  - { name: sama/identity,   newName: PLACEHOLDER_REGISTRY/identity,   newTag: latest }
+  - { name: sama/catalog,    newName: PLACEHOLDER_REGISTRY/catalog,    newTag: latest }
+  - { name: sama/basket,     newName: PLACEHOLDER_REGISTRY/basket,     newTag: latest }
+  - { name: sama/ordering,   newName: PLACEHOLDER_REGISTRY/ordering,   newTag: latest }
+  - { name: sama/inventory,  newName: PLACEHOLDER_REGISTRY/inventory,  newTag: latest }
+  - { name: sama/payment,    newName: PLACEHOLDER_REGISTRY/payment,    newTag: latest }
+  - { name: sama/migrations, newName: PLACEHOLDER_REGISTRY/migrations, newTag: latest }
+  - { name: sama/web,        newName: PLACEHOLDER_REGISTRY/web,        newTag: latest }

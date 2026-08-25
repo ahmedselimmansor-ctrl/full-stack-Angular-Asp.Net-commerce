@@ -1,0 +1,24 @@
+project_id  = "sama-prod-000000"
+region      = "europe-west1"
+environment = "prod"
+
+domain     = "sama.example"
+api_domain = "api.sama.example"
+
+# Regional HA: a synchronous standby in a second zone with automatic failover.
+database_tier              = "db-custom-4-15360"
+database_availability_type = "REGIONAL"
+database_disk_size_gb      = 100
+
+redis_tier           = "STANDARD_HA"
+redis_memory_size_gb = 10
+
+deletion_protection = true
+
+edge_rate_limit_per_minute = 1200
+
+# Restrict who can reach the GKE control plane. An empty list means "anywhere", which is
+# rarely what you want in production.
+allowed_admin_cidrs = ["203.0.113.0/24"]
+
+github_repository = "ahmedselimmansor-ctrl/sama-commerce"

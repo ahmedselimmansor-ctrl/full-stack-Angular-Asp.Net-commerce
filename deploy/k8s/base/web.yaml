@@ -1,0 +1,75 @@
+# The Angular bundle, served by nginx. Static files only — every API call goes to the gateway
+# through the same load balancer, so the browser sees one origin and needs no CORS preflight
+# in production.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sama-web
+  namespace: sama
+  labels:
+    app.kubernetes.io/name: sama-web
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: sama
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sama-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sama-web
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: sama
+    spec:
+      serviceAccountName: sama-workload
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: sama/web:latest
+          ports:
+            - { name: http, containerPort: 8080 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { memory: 128Mi }
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              sleep: { seconds: 5 }
+          volumeMounts:
+            # nginx writes its pid and temporary bodies; the root filesystem is read-only.
+            - { name: cache, mountPath: /var/cache/nginx }
+            - { name: run, mountPath: /var/run }
+      volumes:
+        - name: cache
+          emptyDir: { sizeLimit: 32Mi }
+        - name: run
+          emptyDir: { sizeLimit: 8Mi }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sama-web
+  namespace: sama
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sama-web

@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A newer push supersedes an in-flight run on the same branch; there is no value in finishing
+# a build for a commit that has already been replaced.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: sama
+          POSTGRES_PASSWORD: sama_ci_password
+          POSTGRES_DB: sama
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sama" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - run: dotnet restore Sama.slnx
+
+      # -warnaserror in CI as well as locally, so a warning cannot accumulate unnoticed on a
+      # machine where someone has it configured differently.
+      - run: dotnet build Sama.slnx --configuration Release --no-restore -warnaserror
+
+      - run: dotnet test Sama.slnx --configuration Release --no-build --verbosity normal
+        env:
+          SAMA_TEST_POSTGRES: Host=localhost;Port=5432;Database=sama;Username=sama;Password=sama_ci_password
+          SAMA_TEST_REDIS: localhost:6379
+
+  frontend:
+    name: Storefront build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: src/web/sama-web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/web/sama-web/package-lock.json
+
+      # ci, not install: fails when package-lock.json disagrees with package.json rather than
+      # quietly resolving to something that was never tested.
+      - run: npm ci --no-audit --no-fund
+
+      - run: npm run build -- --configuration production
+
+  manifests:
+    name: Deployment manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+
+      - name: Terraform format and validate
+        working-directory: deploy/terraform
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false -input=false
+          terraform validate
+
+      - name: Build every Kustomize overlay
+        run: |
+          curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" \
+            | tar xz -C /usr/local/bin
+          for env in dev staging prod; do
+            echo "==> $env"
+            kustomize build "deploy/k8s/overlays/$env" > /dev/null
+          done
+
+  images:
+    name: Container images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [backend, frontend]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: gateway,   dockerfile: Dockerfile.service, service: Sama.Gateway, path: gateway }
+          - { name: identity,  dockerfile: Dockerfile.service, service: Sama.Identity }
+          - { name: catalog,   dockerfile: Dockerfile.service, service: Sama.Catalog }
+          - { name: basket,    dockerfile: Dockerfile.service, service: Sama.Basket }
+          - { name: ordering,  dockerfile: Dockerfile.service, service: Sama.Ordering }
+          - { name: inventory, dockerfile: Dockerfile.service, service: Sama.Inventory }
+          - { name: payment,   dockerfile: Dockerfile.service, service: Sama.Payment }
+          - { name: web,       dockerfile: Dockerfile.web }
+          - { name: migrations, dockerfile: Dockerfile.migrations }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Build only on a pull request; publishing happens in the deploy workflow, which runs
+      # with the credentials this one deliberately does not have.
+      - name: Build ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/docker/${{ matrix.dockerfile }}
+          push: false
+          load: true
+          tags: sama/${{ matrix.name }}:${{ github.sha }}
+          build-args: |
+            SERVICE=${{ matrix.service }}
+            SERVICE_PATH=${{ matrix.path || 'services' }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+      - name: Scan ${{ matrix.name }} for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: sama/${{ matrix.name }}:${{ github.sha }}
+          format: table
+          # Fails the build on a fixable high or critical finding. Unfixed ones are reported
+          # but do not block, since there is nothing the pipeline could do about them.
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL

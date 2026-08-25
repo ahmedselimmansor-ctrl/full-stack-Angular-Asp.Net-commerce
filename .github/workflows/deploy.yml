@@ -1,0 +1,161 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, staging, prod]
+        default: staging
+
+concurrency:
+  # Never two deploys into the same environment at once; the second would race the first's
+  # rollout and could leave a half-migrated schema behind.
+  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  # Required to mint the OIDC token that Workload Identity Federation exchanges for Google
+  # credentials. No service-account key is stored in GitHub.
+  id-token: write
+
+env:
+  REGION: europe-west1
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGISTRY: europe-west1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sama
+
+jobs:
+  build-and-push:
+    name: Build and publish images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { name: gateway,    dockerfile: Dockerfile.service, service: Sama.Gateway, path: gateway }
+          - { name: identity,   dockerfile: Dockerfile.service, service: Sama.Identity }
+          - { name: catalog,    dockerfile: Dockerfile.service, service: Sama.Catalog }
+          - { name: basket,     dockerfile: Dockerfile.service, service: Sama.Basket }
+          - { name: ordering,   dockerfile: Dockerfile.service, service: Sama.Ordering }
+          - { name: inventory,  dockerfile: Dockerfile.service, service: Sama.Inventory }
+          - { name: payment,    dockerfile: Dockerfile.service, service: Sama.Payment }
+          - { name: web,        dockerfile: Dockerfile.web }
+          - { name: migrations, dockerfile: Dockerfile.migrations }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/docker/${{ matrix.dockerfile }}
+          push: true
+          # Tagged with the commit SHA, never only with `latest`. An immutable tag is what
+          # makes a rollback a matter of pointing at a previous digest.
+          tags: |
+            ${{ env.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ matrix.name }}:latest
+          build-args: |
+            SERVICE=${{ matrix.service }}
+            SERVICE_PATH=${{ matrix.path || 'services' }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+          provenance: true
+          sbom: true
+
+  deploy:
+    name: Migrate and roll out
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build-and-push
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: gke-gcloud-auth-plugin
+
+      - name: Get cluster credentials
+        run: |
+          gcloud container clusters get-credentials "${{ vars.GKE_CLUSTER }}" \
+            --region "${{ env.REGION }}" --project "${{ env.PROJECT_ID }}"
+
+      - name: Install kustomize
+        run: |
+          curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" \
+            | sudo tar xz -C /usr/local/bin
+
+      - name: Pin images to this commit
+        working-directory: deploy/k8s/overlays/${{ github.event.inputs.environment || 'staging' }}
+        run: |
+          for image in gateway identity catalog basket ordering inventory payment web migrations; do
+            kustomize edit set image "sama/${image}=${{ env.REGISTRY }}/${image}:${{ github.sha }}"
+          done
+
+      - name: Apply schema migrations
+        run: |
+          NS="${{ github.event.inputs.environment == 'prod' && 'sama' || format('sama-{0}', github.event.inputs.environment || 'staging') }}"
+
+          # The Job is immutable once created, so the previous one is removed before the new
+          # one is applied.
+          kubectl -n "$NS" delete job sama-migrations --ignore-not-found=true
+
+          kustomize build "deploy/k8s/overlays/${{ github.event.inputs.environment || 'staging' }}" \
+            | kubectl apply -f - --selector app.kubernetes.io/name=sama-migrations
+
+          # The rollout below must not start until the schema is in place.
+          kubectl -n "$NS" wait --for=condition=complete job/sama-migrations --timeout=600s \
+            || { kubectl -n "$NS" logs job/sama-migrations --tail=200; exit 1; }
+
+      - name: Roll out services
+        run: |
+          kustomize build "deploy/k8s/overlays/${{ github.event.inputs.environment || 'staging' }}" \
+            | kubectl apply -f -
+
+      - name: Wait for every deployment to become healthy
+        run: |
+          NS="${{ github.event.inputs.environment == 'prod' && 'sama' || format('sama-{0}', github.event.inputs.environment || 'staging') }}"
+
+          # A failed rollout leaves the previous ReplicaSet serving, because maxUnavailable is
+          # zero. Surfacing it here turns a silent half-deploy into a failed pipeline.
+          for deployment in $(kubectl -n "$NS" get deploy -o name); do
+            kubectl -n "$NS" rollout status "$deployment" --timeout=300s
+          done
+
+      - name: Smoke test the public edge
+        run: |
+          for _ in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://${{ vars.API_DOMAIN }}/health/ready" || true)
+            [ "$code" = "200" ] && { echo "edge healthy"; exit 0; }
+            sleep 10
+          done
+          echo "edge did not become healthy" >&2
+          exit 1

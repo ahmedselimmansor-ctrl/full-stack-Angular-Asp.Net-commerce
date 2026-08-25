@@ -1,0 +1,22 @@
+project_id  = "sama-dev-000000"
+region      = "europe-west1"
+environment = "dev"
+
+domain     = "dev.sama.example"
+api_domain = "api-dev.sama.example"
+
+# Zonal and small. A regional HA database and a standard-tier Redis cost real money and buy a
+# dev environment nothing.
+database_tier              = "db-g1-small"
+database_availability_type = "ZONAL"
+database_disk_size_gb      = 20
+
+redis_tier           = "BASIC"
+redis_memory_size_gb = 1
+
+# Off, so a dev environment can actually be torn down.
+deletion_protection = false
+
+edge_rate_limit_per_minute = 6000
+
+github_repository = "ahmedselimmansor-ctrl/sama-commerce"

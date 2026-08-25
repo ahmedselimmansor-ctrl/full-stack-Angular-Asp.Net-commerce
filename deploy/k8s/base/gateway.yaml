@@ -1,0 +1,216 @@
+# The only pod exposed to the load balancer; scaled hardest because all traffic lands here.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sama-gateway
+  namespace: sama
+  labels:
+    app.kubernetes.io/name: sama-gateway
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/part-of: sama
+spec:
+  replicas: 3
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Never dip below the declared replica count during a rollout; surge instead.
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sama-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sama-gateway
+        app.kubernetes.io/component: gateway
+        app.kubernetes.io/part-of: sama
+    spec:
+      serviceAccountName: sama-workload
+
+      # Long enough for in-flight requests and Pub/Sub handlers to finish; the preStop delay
+      # below consumes part of it.
+      terminationGracePeriodSeconds: 45
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        seccompProfile:
+          type: RuntimeDefault
+
+      topologySpreadConstraints:
+        # Spread across zones so losing one does not take the service with it.
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: sama-gateway
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: sama-gateway
+
+      containers:
+        - name: app
+          image: sama/gateway:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            # Lets logs and traces be attributed to a specific pod without querying the API.
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://opentelemetry-collector.observability:4317
+
+          envFrom:
+            - configMapRef:
+                name: sama-shared
+            - secretRef:
+                name: sama-gateway-secrets
+
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              # No CPU limit on purpose: the CFS quota throttles latency-sensitive request
+              # handling well before the pod is actually short of CPU. Memory is limited,
+              # because an unbounded leak would take the node's other pods down with it.
+              memory: 512Mi
+
+          startupProbe:
+            # Covers JIT warm-up and the first database connection without the liveness probe
+            # killing a pod that is merely slow to start.
+            httpGet: { path: /health/live, port: http }
+            periodSeconds: 3
+            failureThreshold: 30
+
+          readinessProbe:
+            # Checks dependencies. Failing removes the pod from the load balancer without
+            # restarting it, which is the right response to a transient Redis blip.
+            httpGet: { path: /health/ready, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+            # Deliberately dependency-free. A liveness probe that tested Redis would restart
+            # every pod in the fleet during a failover, turning a degraded cache into an outage.
+            httpGet: { path: /health/live, port: http }
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          lifecycle:
+            preStop:
+              # Endpoint removal and kube-proxy/NEG updates are eventually consistent, so a pod
+              # keeps receiving traffic for a moment after termination begins. Sleeping first
+              # lets that propagate, which is the difference between a clean deploy and a
+              # scattering of 502s.
+              sleep:
+                seconds: 10
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        # readOnlyRootFilesystem is on, and the runtime still needs somewhere to write.
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sama-gateway
+  namespace: sama
+  labels:
+    app.kubernetes.io/name: sama-gateway
+  annotations:
+    # Container-native load balancing: the LB targets pod IPs directly through a NEG, removing
+    # the kube-proxy hop and giving accurate per-pod health and load reporting.
+    cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/backend-config: '{"default": "sama-api-backend"}'
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sama-gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sama-gateway
+  namespace: sama
+spec:
+  # Keeps voluntary disruption (node upgrades, autoscaler drains) from taking the service
+  # below one healthy pod.
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sama-gateway
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sama-gateway
+  namespace: sama
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sama-gateway
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # 65%, not 80%: scaling has to start before the existing pods are saturated, because
+          # a new pod is not serving until its startup probe passes.
+          averageUtilization: 65
+  behavior:
+    scaleUp:
+      # React quickly to a traffic spike.
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+    scaleDown:
+      # Retreat slowly. Scaling down into a lull that is about to end costs another cold start.
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60

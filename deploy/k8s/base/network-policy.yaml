@@ -1,0 +1,108 @@
+# Default deny, then allow only the paths that must exist.
+#
+# Without this, any compromised pod can reach every service and both data stores directly,
+# bypassing the gateway's authentication entirely. The policies below mean a foothold in, say,
+# the catalogue cannot talk to Identity's database or call Ordering's internal endpoints.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: sama
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: sama
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-gateway-ingress
+  namespace: sama
+spec:
+  # Only the gateway accepts traffic from outside the namespace, and only from the load
+  # balancer's health-check and proxy ranges.
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: gateway
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - ipBlock:
+            # Google Front End / health-check ranges for the external Application LB.
+            cidr: 130.211.0.0/22
+        - ipBlock:
+            cidr: 35.191.0.0/16
+      ports:
+        - { protocol: TCP, port: 8080 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-gateway-to-services
+  namespace: sama
+spec:
+  # Backends accept HTTP only from the gateway and from each other — the service-to-service
+  # calls checkout depends on.
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: service
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: sama
+      ports:
+        - { protocol: TCP, port: 8080 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-data-and-google
+  namespace: sama
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: sama
+  policyTypes: [Egress]
+  egress:
+    # In-namespace service-to-service calls.
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: sama
+      ports:
+        - { protocol: TCP, port: 8080 }
+    # Cloud SQL and Memorystore live on the VPC's private ranges; this is intentionally the
+    # private allocation only, so a pod cannot open arbitrary connections to the internet.
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/8
+      ports:
+        - { protocol: TCP, port: 5432 }
+        - { protocol: TCP, port: 6379 }
+    # Google APIs (Pub/Sub, Secret Manager, Cloud Trace) via Private Google Access.
+    - to:
+        - ipBlock:
+            cidr: 199.36.153.8/30
+      ports:
+        - { protocol: TCP, port: 443 }

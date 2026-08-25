@@ -1,0 +1,137 @@
+# Public edge: one Google Cloud external Application Load Balancer fronting both the API and
+# the storefront bundle, with Cloud Armor and Cloud CDN attached per backend.
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: sama-cert
+  namespace: sama
+spec:
+  domains:
+    - sama.example
+    - www.sama.example
+    - api.sama.example
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: sama-api-backend
+  namespace: sama
+spec:
+  # WAF, per-IP throttling and adaptive DDoS protection, applied before a request costs a pod.
+  securityPolicy:
+    name: sama-api-armor
+
+  # Cloud CDN is off for the API backend: responses are per-user and the services set
+  # Cache-Control themselves. Catalogue reads are still cached, by the CDN attached to the
+  # storefront backend and by the services' own Redis tier.
+  cdn:
+    enabled: false
+
+  healthCheck:
+    type: HTTP
+    requestPath: /health/ready
+    port: 8080
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 3
+
+  # Must exceed the application's own request timeout, or the LB severs a request the backend
+  # is still legitimately working on.
+  timeoutSec: 60
+
+  connectionDraining:
+    drainingTimeoutSec: 60
+
+  logging:
+    enable: true
+    sampleRate: 0.1
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: sama-web-backend
+  namespace: sama
+spec:
+  securityPolicy:
+    name: sama-web-armor
+  cdn:
+    enabled: true
+    cachePolicy:
+      includeHost: true
+      includeProtocol: true
+      includeQueryString: true
+    # CACHE_ALL_STATIC caches by content type even without explicit headers. The bundle is
+    # content-hashed and served with immutable Cache-Control, so this is safe.
+    cacheMode: CACHE_ALL_STATIC
+    defaultTtl: 3600
+    clientTtl: 3600
+    maxTtl: 86400
+    negativeCaching: true
+    # Serve the previous copy while one request refreshes it, so an origin blip is invisible.
+    serveWhileStale: 86400
+    requestCoalescing: true
+  healthCheck:
+    type: HTTP
+    requestPath: /healthz
+    port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sama-web
+  namespace: sama
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/backend-config: '{"default": "sama-web-backend"}'
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sama-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sama
+  namespace: sama
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: sama-ingress-ip
+    networking.gke.io/managed-certificates: sama-cert
+    # Redirects HTTP to HTTPS at the load balancer, so no plaintext request ever reaches a pod.
+    networking.gke.io/v1beta1.FrontendConfig: sama-frontend
+spec:
+  rules:
+    - host: api.sama.example
+      http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: sama-gateway
+                port: { number: 80 }
+    - host: sama.example
+      http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: sama-web
+                port: { number: 80 }
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: sama-frontend
+  namespace: sama
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: MOVED_PERMANENTLY_DEFAULT
+  sslPolicy: sama-modern-tls

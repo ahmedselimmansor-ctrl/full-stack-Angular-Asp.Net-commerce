@@ -1,0 +1,18 @@
+# Secrets are not stored in Git. This declares what each service expects; the values are
+# synchronised from Google Secret Manager by External Secrets Operator, so the only thing in
+# the repository is the name of the secret and never its contents.
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: sama-gcp
+  namespace: sama
+spec:
+  provider:
+    gcpsm:
+      projectID: PLACEHOLDER_PROJECT_ID
+      auth:
+        workloadIdentity:
+          clusterLocation: PLACEHOLDER_REGION
+          clusterName: PLACEHOLDER_CLUSTER
+          serviceAccountRef:
+            name: sama-workload
