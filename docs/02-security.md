@@ -149,7 +149,8 @@ burst across a window boundary, and for login throttling that doubling is the wh
 
 | Policy | Limit | Partition |
 |---|---|---|
-| `auth-login` | 5 / 5 min | IP **and** username |
+| `auth-login` | 5 / 5 min | IP **and** submitted username |
+| `auth-login-ip` | 300 / 5 min | IP (volumetric floor) |
 | `auth-register` | 3 / hour | IP |
 | `auth-refresh` | 600 / 5 min | IP |
 | `checkout` | 10 / min | user |
@@ -157,8 +158,16 @@ burst across a window boundary, and for login throttling that doubling is the wh
 | `write` | 60 / min | user |
 | `read` | 600 / min | user |
 
-Login is partitioned on IP *and* username because credential stuffing rotates the username on
-one IP and the IP on one username; partitioning on either alone misses half the attack.
+Login is partitioned on IP *and* the **submitted** username, because credential stuffing
+rotates the username on one address and the address on one username; partitioning on either
+alone misses half the attack.
+
+The username comes from the request body, not from a claim — a sign-in request carries no
+token. A claim-based partition would resolve to "anonymous" for every attempt and silently
+collapse into one shared per-IP bucket: an office behind a single address would lock itself
+out while an attacker varying the username was barely slowed. The precise limit is therefore
+applied inside the handler, and the gateway keeps a much looser volumetric floor, since a
+proxy cannot read a body.
 
 Refresh is deliberately loose. It cannot be brute-forced — it requires an unguessable 256-bit
 token, and presenting a consumed one already revokes the whole family — so the limit is a

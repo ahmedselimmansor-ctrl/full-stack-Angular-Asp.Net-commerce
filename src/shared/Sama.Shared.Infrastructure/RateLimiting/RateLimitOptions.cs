@@ -30,8 +30,13 @@ public enum RateLimitPartition
     ApiKey = 2,
 
     /// <summary>
-    /// Per IP <i>and</i> the submitted identifier (username/email). Credential stuffing rotates
-    /// the username on one IP and the IP on one username; this catches both halves.
+    /// Per IP and the <b>authenticated</b> subject.
+    /// <para>
+    /// Only meaningful once a token has been validated. On an anonymous endpoint there is no
+    /// subject claim, so this degrades to a single shared per-IP bucket — which is why the
+    /// sign-in endpoint does not use it. Login partitions on the <i>submitted</i> username,
+    /// which lives in the request body and is applied by the endpoint itself.
+    /// </para>
     /// </summary>
     IpAndSubject = 3,
 }

@@ -41,7 +41,9 @@ public static class AuthEndpoints
 
         group.MapPost("/login", LoginAsync)
             .AllowAnonymous()
-            .RateLimit("auth-login")
+            // Metered inside the handler rather than by route metadata: the bucket has to be
+            // keyed on the submitted username, which is in the body and not yet a claim.
+            .RateLimit("auth-login-ip")
             .WithSummary("Exchanges credentials for a token pair.");
 
         group.MapPost("/refresh", RefreshAsync)
@@ -137,6 +139,7 @@ public static class AuthEndpoints
         IPasswordHasher<User> passwordHasher,
         ITenantContext tenantContext,
         TokenService tokens,
+        IRateLimiter limiter,
         IOptions<AuthOptions> authOptions,
         IOptions<SigningOptions> signingOptions,
         IHostEnvironment environment,
@@ -152,6 +155,21 @@ public static class AuthEndpoints
         var now = clock.UtcNow;
         var tenantId = tenantContext.RequireTenantId();
         var normalized = User.Normalize(request.Email);
+
+        // Credential stuffing rotates the username on one address and the address on one
+        // username, so the bucket has to be keyed on both. The username comes from the body:
+        // there is no token on a sign-in request, so a claim-based partition would silently
+        // collapse every attempt from one address into a single shared bucket — throttling a
+        // whole office together while doing nothing to slow an attacker who varies the name.
+        var attemptKey = $"ip:{context.Connection.RemoteIpAddress}|u:{normalized}";
+        var attempt = await limiter.AcquireAsync("auth-login", attemptKey, cancellationToken);
+
+        if (!attempt.IsAllowed)
+        {
+            RateLimitResponse.WriteHeaders(context, attempt);
+            await RateLimitResponse.WriteTooManyRequestsAsync(context, attempt);
+            return Results.Empty;
+        }
 
         // IgnoreQueryFilters: there is no authenticated tenant yet, so the model-level tenant
         // filter would match nothing. The tenant is instead pinned explicitly in the predicate.
