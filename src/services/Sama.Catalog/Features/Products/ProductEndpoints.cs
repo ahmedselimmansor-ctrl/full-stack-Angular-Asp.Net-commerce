@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Sama.Shared.Infrastructure.Persistence;
 using Sama.Catalog.Domain;
 using Sama.Catalog.Persistence;
 using Sama.Shared.Infrastructure.Caching;
@@ -367,11 +368,33 @@ public static class ProductEndpoints
         }
 
         database.Products.Add(product);
-        await database.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception)
+            when (UniqueViolation.TryMap(exception, ProductConflicts, out var conflict))
+        {
+            // Two people authoring the same SKU at once both pass any pre-check, so
+            // the index is what actually decides. Reporting the collision it found
+            // tells the author which field to change.
+            return conflict.ToProblem();
+        }
+
         await InvalidateAsync(cache, cancellationToken);
 
         return Results.Created($"/api/v1/products/{product.Slug}", new { id = product.Id, slug = product.Slug });
     }
+
+    /// <summary>Maps each unique index on products onto the field the author controls.</summary>
+    private static readonly Dictionary<string, Error> ProductConflicts = new()
+    {
+        ["ux_products_tenant_sku"] = Error.Conflict(
+            "catalog.product.skuTaken", "Another product already uses that SKU."),
+        ["ux_products_tenant_slug"] = Error.Conflict(
+            "catalog.product.slugTaken", "Another product already uses that web address."),
+    };
 
     private static async Task<IResult> UpdateAsync(
         Guid id,

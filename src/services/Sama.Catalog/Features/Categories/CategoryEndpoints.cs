@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Sama.Shared.Infrastructure.Persistence;
 using Sama.Catalog.Domain;
 using Sama.Catalog.Persistence;
 using Sama.Shared.Infrastructure.Caching;
@@ -126,10 +127,25 @@ public static class CategoryEndpoints
             tenant.RequireTenantId(), request.Name, request.Slug, request.ParentId, request.SortOrder);
 
         database.Categories.Add(category);
-        await database.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception)
+            when (UniqueViolation.TryMap(exception, CategoryConflicts, out var conflict))
+        {
+            return conflict.ToProblem();
+        }
 
         await cache.RemoveByTagAsync(Keys.TagAll("category"), cancellationToken);
 
         return Results.Created($"/api/v1/categories/{category.Slug}", new { id = category.Id, slug = category.Slug });
     }
+
+    private static readonly Dictionary<string, Error> CategoryConflicts = new()
+    {
+        ["ux_categories_tenant_slug"] = Error.Conflict(
+            "catalog.category.slugTaken", "Another category already uses that web address."),
+    };
 }
