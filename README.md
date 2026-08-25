@@ -74,13 +74,21 @@ cd src/web/sama-web && npm install && npm start
 ### Proving it works
 
 ```bash
-./scripts/test-saga.sh
+./scripts/test-all.sh
 ```
 
-Exercises the whole checkout saga end to end — order placed, stock reserved, payment taken,
-basket emptied — plus both compensating paths (declined payment, insufficient stock),
-idempotent retry, and row-level access control. `./scripts/test-gateway.sh` does the same
-through the public edge only.
+Five suites, 60+ assertions, against the running stack:
+
+| Suite | Covers |
+|---|---|
+| `test-auth.sh` | Registration, sign-in, HttpOnly refresh cookie, token rotation and theft detection, login throttling, response hardening |
+| `test-catalog.sh` | Authoring, publication, anonymous browsing, CDN headers, conditional GETs, full-text search, cache invalidation, outbox |
+| `test-basket.sh` | Server-authoritative pricing, quantity caps, per-user isolation |
+| `test-saga.sh` | The full checkout saga plus both compensating paths, idempotent retry, row-level access control |
+| `test-gateway.sh` | Everything through the public edge only, including the internal endpoint being unreachable |
+
+Each runs standalone too. `test-catalog.sh` creates the product the later suites shop for, so
+run them in that order.
 
 ---
 
