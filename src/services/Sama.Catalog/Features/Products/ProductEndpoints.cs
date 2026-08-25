@@ -189,7 +189,7 @@ public static class ProductEndpoints
             .Skip(request.Skip)
             .Take(request.PageSize)
             .Select(p => new ProductSummary(
-                p.Id, p.Sku, p.Name, p.Slug, p.Brand, p.Price, p.Currency, p.CategoryId,
+                p.Id, p.Sku, p.Name, p.NameAr, p.Slug, p.Brand, p.Price, p.Currency, p.CategoryId,
                 p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()))
             .ToListAsync(cancellationToken);
 
@@ -212,8 +212,8 @@ public static class ProductEndpoints
                 .AsNoTracking()
                 .Where(p => p.Slug == slug && p.Status == ProductStatus.Published)
                 .Select(p => new ProductDetail(
-                    p.Id, p.Sku, p.Name, p.Slug, p.Description, p.Brand, p.Price, p.Currency,
-                    p.Status.ToString(), p.CategoryId,
+                    p.Id, p.Sku, p.Name, p.NameAr, p.Slug, p.Description, p.DescriptionAr,
+                    p.Brand, p.Price, p.Currency, p.Status.ToString(), p.CategoryId,
                     p.Images.OrderBy(i => i.SortOrder)
                         .Select(i => new ProductImageDto(i.Url, i.AltText, i.SortOrder))
                         .ToList()))
@@ -269,7 +269,8 @@ public static class ProductEndpoints
             .Skip(request.Skip)
             .Take(request.PageSize)
             .Select(p => new ManagedProductSummary(
-                p.Id, p.Sku, p.Name, p.Slug, p.Brand, p.Price, p.Currency, p.Status.ToString(), p.CategoryId,
+                p.Id, p.Sku, p.Name, p.NameAr, p.Slug, p.Brand, p.Price, p.Currency,
+                p.Status.ToString(), p.CategoryId,
                 p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault(),
                 p.CreatedAt, p.UpdatedAt))
             .ToListAsync(cancellationToken);
@@ -289,8 +290,8 @@ public static class ProductEndpoints
             .AsNoTracking()
             .Where(p => p.Id == id)
             .Select(p => new ProductDetail(
-                p.Id, p.Sku, p.Name, p.Slug, p.Description, p.Brand, p.Price, p.Currency,
-                p.Status.ToString(), p.CategoryId,
+                p.Id, p.Sku, p.Name, p.NameAr, p.Slug, p.Description, p.DescriptionAr,
+                p.Brand, p.Price, p.Currency, p.Status.ToString(), p.CategoryId,
                 p.Images.OrderBy(i => i.SortOrder)
                     .Select(i => new ProductImageDto(i.Url, i.AltText, i.SortOrder))
                     .ToList()))
@@ -360,7 +361,7 @@ public static class ProductEndpoints
 
         var product = Product.Create(
             tenantId, request.Sku, request.Name, request.Slug, request.Description,
-            request.CategoryId, price.Value, request.Brand);
+            request.CategoryId, price.Value, request.Brand, request.NameAr, request.DescriptionAr);
 
         foreach (var image in request.Images ?? [])
         {
@@ -416,7 +417,9 @@ public static class ProductEndpoints
             return Error.NotFound("catalog.product.notFound", "No such product.").ToProblem();
         }
 
-        product.UpdateDetails(request.Name, request.Slug, request.Description, request.CategoryId, request.Brand);
+        product.UpdateDetails(
+            request.Name, request.Slug, request.Description, request.CategoryId, request.Brand,
+            request.NameAr, request.DescriptionAr);
 
         if (request.Images is not null)
         {

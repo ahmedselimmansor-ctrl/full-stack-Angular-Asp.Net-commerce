@@ -14,6 +14,8 @@ export interface ProductSummary {
   readonly id: string;
   readonly sku: string;
   readonly name: string;
+  /** Arabic name, when one has been written. Null means "fall back to `name`". */
+  readonly nameAr: string | null;
   readonly slug: string;
   readonly brand: string | null;
   readonly price: number;
@@ -24,6 +26,7 @@ export interface ProductSummary {
 
 export interface ProductDetail extends Omit<ProductSummary, 'primaryImageUrl'> {
   readonly description: string;
+  readonly descriptionAr: string | null;
   readonly status: string;
   readonly images: readonly ProductImage[];
 }
@@ -140,6 +143,7 @@ export interface ManagedProduct {
   readonly id: string;
   readonly sku: string;
   readonly name: string;
+  readonly nameAr: string | null;
   readonly slug: string;
   readonly brand: string | null;
   readonly price: number;
@@ -154,8 +158,10 @@ export interface ManagedProduct {
 export interface CreateProductRequest {
   readonly sku: string;
   readonly name: string;
+  readonly nameAr: string | null;
   readonly slug: string;
   readonly description: string;
+  readonly descriptionAr: string | null;
   readonly categoryId: string;
   readonly price: number;
   readonly currency: string;
@@ -165,8 +171,10 @@ export interface CreateProductRequest {
 
 export interface UpdateProductRequest {
   readonly name: string;
+  readonly nameAr: string | null;
   readonly slug: string;
   readonly description: string;
+  readonly descriptionAr: string | null;
   readonly categoryId: string;
   readonly brand?: string | null;
   readonly images?: readonly ProductImage[];

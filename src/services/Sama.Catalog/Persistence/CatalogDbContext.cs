@@ -81,10 +81,15 @@ public sealed class CatalogDbContext(
 
             // Database-generated tsvector plus a GIN index. Weighted so a term matching the
             // product name outranks the same term buried in a description.
+            // The Arabic name and description are indexed alongside the English
+            // ones. PostgreSQL ships no Arabic stemmer, so the 'english'
+            // configuration tokenises Arabic without stemming it: an exact term
+            // matches, a morphological variant does not. That is a real limitation
+            // and still far better than Arabic search returning nothing at all.
             entity.HasGeneratedTsVectorColumn(
                     p => p.SearchVector,
                     "english",
-                    p => new { p.Name, p.Brand, p.Description })
+                    p => new { p.Name, p.NameAr, p.Brand, p.Description, p.DescriptionAr })
                 .HasIndex(p => p.SearchVector)
                 .HasMethod("GIN")
                 .HasDatabaseName("ix_products_search");

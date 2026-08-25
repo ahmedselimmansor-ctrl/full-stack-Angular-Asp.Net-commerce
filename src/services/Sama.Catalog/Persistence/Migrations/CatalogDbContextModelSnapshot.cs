@@ -154,6 +154,10 @@ namespace Sama.Catalog.Persistence.Migrations
                         .HasColumnType("character varying(8000)")
                         .HasColumnName("description");
 
+                    b.Property<string>("DescriptionAr")
+                        .HasColumnType("text")
+                        .HasColumnName("description_ar");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
@@ -163,6 +167,10 @@ namespace Sama.Catalog.Persistence.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)")
                         .HasColumnName("name");
+
+                    b.Property<string>("NameAr")
+                        .HasColumnType("text")
+                        .HasColumnName("name_ar");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric(18,2)")
@@ -174,7 +182,7 @@ namespace Sama.Catalog.Persistence.Migrations
                         .HasColumnType("tsvector")
                         .HasColumnName("search_vector")
                         .HasAnnotation("Npgsql:TsVectorConfig", "english")
-                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "Name", "Brand", "Description" });
+                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "Name", "NameAr", "Brand", "Description", "DescriptionAr" });
 
                     b.Property<string>("Sku")
                         .IsRequired()

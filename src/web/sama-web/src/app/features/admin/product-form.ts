@@ -44,8 +44,18 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
           </label>
         </div>
 
+        <!-- The translation sits directly beneath the text it translates, and is
+             typed right-to-left, so a buyer can see the pair together rather than
+             hunting for a separate Arabic tab. -->
         <label class="field">
-          <span>URL slug</span>
+          <span>{{ 'field.nameAr' | t }}</span>
+          <input name="nameAr" dir="rtl" lang="ar" [(ngModel)]="nameAr" [disabled]="saving()" />
+          <span class="hint muted">{{ 'field.translationOptional' | t }}</span>
+          @if (fieldError('NameAr'); as m) { <span class="error-text">{{ m }}</span> }
+        </label>
+
+        <label class="field">
+          <span>{{ 'field.slugUrl' | t }}</span>
           <input name="slug" [(ngModel)]="slug" [disabled]="saving()" required />
           <span class="hint muted">Appears in the product's address: /products/{{ slug || 'your-slug' }}</span>
           @if (fieldError('Slug'); as m) { <span class="error-text">{{ m }}</span> }
@@ -55,6 +65,20 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
           <span>{{ 'field.description' | t }}</span>
           <textarea name="description" rows="5" [(ngModel)]="description" [disabled]="saving()" required></textarea>
           @if (fieldError('Description'); as m) { <span class="error-text">{{ m }}</span> }
+        </label>
+
+        <label class="field">
+          <span>{{ 'field.descriptionAr' | t }}</span>
+          <textarea
+            name="descriptionAr"
+            rows="5"
+            dir="rtl"
+            lang="ar"
+            [(ngModel)]="descriptionAr"
+            [disabled]="saving()"
+          ></textarea>
+          <span class="hint muted">{{ 'field.translationOptional' | t }}</span>
+          @if (fieldError('DescriptionAr'); as m) { <span class="error-text">{{ m }}</span> }
         </label>
 
         <div class="row">
@@ -184,8 +208,10 @@ export class AdminProductForm {
 
   protected sku = '';
   protected name = '';
+  protected nameAr = '';
   protected slug = '';
   protected description = '';
+  protected descriptionAr = '';
   protected categoryId = '';
   protected brand = '';
   protected price = 0;
@@ -249,8 +275,10 @@ export class AdminProductForm {
         const created = await this.admin.createProduct({
           sku: this.sku.trim(),
           name: this.name.trim(),
+          nameAr: this.nameAr.trim() || null,
           slug: this.slug.trim(),
           description: this.description.trim(),
+          descriptionAr: this.descriptionAr.trim() || null,
           categoryId: this.categoryId,
           price: Number(this.price),
           currency: this.currency,
@@ -265,8 +293,10 @@ export class AdminProductForm {
 
       await this.admin.updateProduct(this.id()!, {
         name: this.name.trim(),
+        nameAr: this.nameAr.trim() || null,
         slug: this.slug.trim(),
         description: this.description.trim(),
+        descriptionAr: this.descriptionAr.trim() || null,
         categoryId: this.categoryId,
         brand: this.brand.trim() || null,
         images,
@@ -309,8 +339,10 @@ export class AdminProductForm {
 
       this.sku = product.sku;
       this.name = product.name;
+      this.nameAr = product.nameAr ?? '';
       this.slug = product.slug;
       this.description = product.description;
+      this.descriptionAr = product.descriptionAr ?? '';
       this.categoryId = product.categoryId;
       this.brand = product.brand ?? '';
       this.price = product.price;

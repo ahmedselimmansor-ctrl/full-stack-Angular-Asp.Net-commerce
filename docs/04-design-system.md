@@ -12,6 +12,7 @@ the constraint the interface is built around.
 - [Type](#type)
 - [Theming](#theming)
 - [Localisation and direction](#localisation-and-direction)
+- [Bilingual product content](#bilingual-product-content)
 - [The pitfall that cost the most](#the-pitfall-that-cost-the-most)
 - [Layout and components](#layout-and-components)
 
@@ -146,6 +147,52 @@ locale tag forces `-u-nu-latn`; a test fails if any Arabic copy reintroduces
 **Logical properties everywhere.** `padding-inline`, `margin-inline-start`,
 `border-inline-start`, `inset-inline` — never `left` or `right`. This is what
 makes RTL a one-attribute change rather than a parallel stylesheet.
+
+## Bilingual product content
+
+Chrome being translated is only half of a bilingual shop. The catalogue itself
+holds each product's name and description in both languages: `name` and
+`description` are required, `name_ar` and `description_ar` are optional.
+
+```mermaid
+flowchart LR
+    Buyer["Buyer writes both<br/>in the back office"] --> DB[("catalog.products<br/>name, name_ar<br/>description, description_ar")]
+    DB --> Search["search_vector<br/>indexes all four"]
+    DB --> API["One payload<br/>carries both languages"]
+    API --> EN["English reader<br/>sees name"]
+    API --> AR["Arabic reader<br/>sees name_ar"]
+    AR -.->|"no translation yet"| EN
+```
+
+Three decisions worth stating:
+
+**Both languages travel in every payload**, rather than the server picking one
+from `Accept-Language`. Listings are cached at the CDN with a five-minute shared
+max-age, and negotiating would require `Vary: Accept-Language` — which fragments
+that cache across every browser locale string and is handled inconsistently by
+intermediaries. Carrying both also means switching language re-renders from data
+already in memory instead of refetching. The cost is a few dozen bytes per item.
+
+**A translation is optional.** A product is often written in one language and
+translated later; requiring the pair would mean an untranslated item cannot be
+sold at all. The storefront falls back to the base text, so the worst case is one
+Latin title on an Arabic page rather than a blank heading. Blank and
+whitespace-only translations are normalised to null in the domain, because an
+empty string satisfies a null check and would defeat that fallback.
+
+**Arabic is searchable, with a caveat.** The generated `tsvector` covers the
+Arabic name and description alongside the English ones, so searching `جلد`
+returns the leather shoes. PostgreSQL ships no Arabic stemmer, so the `english`
+configuration tokenises Arabic without stemming it: an exact term matches, a
+morphological variant does not. That is a real limitation, and still far better
+than Arabic search returning nothing.
+
+One migration detail that cost a run: `search_vector` is a generated column whose
+expression names the columns it reads, and EF scaffolded the `AlterColumn` that
+adds `name_ar` to that expression *before* the `AddColumn` that creates it.
+PostgreSQL rejected it outright. `Down` had the mirror fault. The statements are
+reordered by hand, with the reason recorded in the migration.
+
 
 ## The pitfall that cost the most
 

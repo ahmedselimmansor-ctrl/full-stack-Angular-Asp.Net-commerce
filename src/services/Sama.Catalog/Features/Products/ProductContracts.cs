@@ -4,10 +4,22 @@ using Sama.Shared.Kernel.Primitives;
 
 namespace Sama.Catalog.Features.Products;
 
+/// <summary>
+/// A storefront listing entry.
+/// </summary>
+/// <remarks>
+/// Both languages travel in the payload rather than the server picking one from
+/// Accept-Language. Listings are cached at the CDN with a five-minute shared
+/// max-age, and negotiating the language would require Vary: Accept-Language,
+/// which fragments that cache across every browser locale string and is handled
+/// inconsistently by intermediaries. Carrying both also lets the client switch
+/// language without a refetch. The cost is a few dozen extra bytes per item.
+/// </remarks>
 public sealed record ProductSummary(
     Guid Id,
     string Sku,
     string Name,
+    string? NameAr,
     string Slug,
     string? Brand,
     decimal Price,
@@ -19,8 +31,10 @@ public sealed record ProductDetail(
     Guid Id,
     string Sku,
     string Name,
+    string? NameAr,
     string Slug,
     string Description,
+    string? DescriptionAr,
     string? Brand,
     decimal Price,
     string Currency,
@@ -36,8 +50,10 @@ public sealed record ProductImageDto(string Url, string? AltText, int SortOrder)
 public sealed record CreateProductRequest(
     string Sku,
     string Name,
+    string? NameAr,
     string Slug,
     string Description,
+    string? DescriptionAr,
     Guid CategoryId,
     decimal Price,
     string Currency,
@@ -46,8 +62,10 @@ public sealed record CreateProductRequest(
 
 public sealed record UpdateProductRequest(
     string Name,
+    string? NameAr,
     string Slug,
     string Description,
+    string? DescriptionAr,
     Guid CategoryId,
     string? Brand,
     IReadOnlyList<ProductImageDto>? Images);
@@ -62,6 +80,7 @@ public sealed record ManagedProductSummary(
     Guid Id,
     string Sku,
     string Name,
+    string? NameAr,
     string Slug,
     string? Brand,
     decimal Price,
@@ -98,6 +117,13 @@ public sealed class CreateProductRequestValidator : AbstractValidator<CreateProd
         RuleFor(r => r.CategoryId).NotEmpty();
         RuleFor(r => r.Brand).MaximumLength(200);
 
+        // Optional, because a product is often written in one language and
+        // translated later; requiring the pair would block publication on a
+        // translation that has not been commissioned yet. Bounded all the same,
+        // so an unbounded field cannot be used to bloat a cached listing.
+        RuleFor(r => r.NameAr).MaximumLength(300);
+        RuleFor(r => r.DescriptionAr).MaximumLength(8000);
+
         RuleFor(r => r.Price).GreaterThanOrEqualTo(0);
         RuleFor(r => r.Currency).ApplyCurrencyPolicy();
     }
@@ -112,6 +138,8 @@ public sealed class UpdateProductRequestValidator : AbstractValidator<UpdateProd
         RuleFor(r => r.Description).NotEmpty().MaximumLength(8000);
         RuleFor(r => r.CategoryId).NotEmpty();
         RuleFor(r => r.Brand).MaximumLength(200);
+        RuleFor(r => r.NameAr).MaximumLength(300);
+        RuleFor(r => r.DescriptionAr).MaximumLength(8000);
     }
 }
 

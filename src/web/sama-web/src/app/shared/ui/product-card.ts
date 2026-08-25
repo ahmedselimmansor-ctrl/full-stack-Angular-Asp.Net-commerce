@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductImage } from '../product-image';
-import { LocaleService, MoneyPipe, TranslatePipe } from '../../core/i18n';
+import { LocaleService, LocalisedPipe, MoneyPipe, TranslatePipe, pickLocalised } from '../../core/i18n';
 import type { ProductSummary } from '../../core/models';
 
 /**
@@ -14,13 +14,13 @@ import type { ProductSummary } from '../../core/models';
 @Component({
   selector: 'app-product-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ProductImage, MoneyPipe, TranslatePipe],
+  imports: [RouterLink, ProductImage, MoneyPipe, TranslatePipe, LocalisedPipe],
   template: `
     <article class="tile">
       <a class="tile__media" [routerLink]="['/products', product().slug]" tabindex="-1" aria-hidden="true">
         <app-product-image
           [source]="product().primaryImageUrl"
-          [alt]="product().name"
+          [alt]="displayName()"
           [eager]="eager()"
         />
       </a>
@@ -31,7 +31,9 @@ import type { ProductSummary } from '../../core/models';
         }
 
         <h3 class="tile__name">
-          <a [routerLink]="['/products', product().slug]">{{ product().name }}</a>
+          <a [routerLink]="['/products', product().slug]">
+            {{ product().name | localised: product().nameAr }}
+          </a>
         </h3>
 
         <p class="tile__price">{{ product().price | money: product().currency }}</p>
@@ -50,9 +52,16 @@ import type { ProductSummary } from '../../core/models';
   styleUrl: './product-card.scss',
 })
 export class ProductCard {
+  private readonly locale = inject(LocaleService);
+
   readonly product = input.required<ProductSummary>();
   readonly busy = input(false);
   readonly eager = input(false);
 
   readonly add = output<ProductSummary>();
+
+  /** Alt text has to read in the page's language too, not just the visible title. */
+  protected readonly displayName = computed(() =>
+    pickLocalised(this.locale, this.product().name, this.product().nameAr),
+  );
 }

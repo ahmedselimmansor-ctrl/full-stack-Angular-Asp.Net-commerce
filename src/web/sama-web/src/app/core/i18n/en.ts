@@ -360,6 +360,11 @@ export const en = {
   'auth.newHere': 'New here?',
   'auth.haveAccount': 'Already have an account?',
 
+  'field.nameAr': 'Name in Arabic',
+  'field.descriptionAr': 'Description in Arabic',
+  'field.translationOptional': 'Optional. Left blank, Arabic pages show the English text.',
+  'field.slugUrl': 'URL slug',
+
   'common.loading': 'Loading',
   'common.retry': 'Try again',
   'common.cancel': 'Cancel',

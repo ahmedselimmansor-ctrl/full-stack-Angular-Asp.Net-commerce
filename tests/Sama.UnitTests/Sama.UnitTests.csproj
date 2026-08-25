@@ -31,6 +31,7 @@
     <ProjectReference Include="../../src/shared/Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
     <ProjectReference Include="../../src/shared/Sama.Shared.Security/Sama.Shared.Security.csproj" />
     <ProjectReference Include="../../src/shared/Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/services/Sama.Catalog/Sama.Catalog.csproj" />
     <ProjectReference Include="../../src/services/Sama.Ordering/Sama.Ordering.csproj" />
     <ProjectReference Include="../../src/services/Sama.Inventory/Sama.Inventory.csproj" />
     <ProjectReference Include="../../src/services/Sama.Basket/Sama.Basket.csproj" />

@@ -361,6 +361,11 @@ export const ar: Translations = {
   'auth.newHere': 'أول مرة هنا؟',
   'auth.haveAccount': 'لديك حساب بالفعل؟',
 
+  'field.nameAr': 'الاسم بالعربية',
+  'field.descriptionAr': 'الوصف بالعربية',
+  'field.translationOptional': 'اختياري. إن تُرك فارغاً، تعرض الصفحات العربية النص الإنجليزي.',
+  'field.slugUrl': 'معرّف الرابط',
+
   'common.loading': 'جارٍ التحميل',
   'common.retry': 'حاول مرة أخرى',
   'common.cancel': 'إلغاء',

@@ -52,9 +52,22 @@ public sealed class Product : AggregateRoot<Guid>, ITenantScoped, IAuditable, IS
 
     public string Name { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// The Arabic name, when the buyer has supplied one.
+    ///
+    /// Nullable rather than required: a product is often created in one language
+    /// and translated later, and blocking publication on a missing translation
+    /// would mean an untranslated item cannot be sold at all. The storefront falls
+    /// back to <see cref="Name"/>, so the worst case is a mixed-script listing
+    /// rather than a blank one.
+    /// </summary>
+    public string? NameAr { get; private set; }
+
     public string Slug { get; private set; } = string.Empty;
 
     public string Description { get; private set; } = string.Empty;
+
+    public string? DescriptionAr { get; private set; }
 
     public Guid CategoryId { get; private set; }
 
@@ -98,24 +111,47 @@ public sealed class Product : AggregateRoot<Guid>, ITenantScoped, IAuditable, IS
         string description,
         Guid categoryId,
         Money price,
-        string? brand = null)
+        string? brand = null,
+        string? nameAr = null,
+        string? descriptionAr = null)
     {
         var product = new Product(
             SamaId.New(), tenantId, sku, name, slug, description, categoryId, price.Amount, price.Currency)
         {
             Brand = brand,
+            NameAr = Normalise(nameAr),
+            DescriptionAr = Normalise(descriptionAr),
         };
 
         return product;
     }
 
-    public void UpdateDetails(string name, string slug, string description, Guid categoryId, string? brand)
+    /// <summary>
+    /// Blank and whitespace-only translations are stored as null.
+    ///
+    /// An empty string and "no translation" are the same thing to a reader, but
+    /// they are different to the fallback: an empty string would satisfy a
+    /// null-check and render a product with no name at all.
+    /// </summary>
+    private static string? Normalise(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    public void UpdateDetails(
+        string name,
+        string slug,
+        string description,
+        Guid categoryId,
+        string? brand,
+        string? nameAr = null,
+        string? descriptionAr = null)
     {
         Name = name;
         Slug = slug;
         Description = description;
         CategoryId = categoryId;
         Brand = brand;
+        NameAr = Normalise(nameAr);
+        DescriptionAr = Normalise(descriptionAr);
     }
 
     /// <summary>

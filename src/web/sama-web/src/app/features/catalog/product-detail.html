@@ -16,7 +16,7 @@
         <div class="detail__frame">
           <app-product-image
             [source]="item.images.length > 0 ? item.images[selected()].url : null"
-            [alt]="item.images.length > 0 ? (item.images[selected()].altText ?? item.name) : item.name"
+            [alt]="item.images.length > 0 ? (item.images[selected()].altText ?? displayName(item)) : displayName(item)"
             [eager]="true"
           />
         </div>
@@ -44,10 +44,10 @@
           <p class="brand">{{ item.brand }}</p>
         }
 
-        <h1>{{ item.name }}</h1>
+        <h1>{{ item.name | localised: item.nameAr }}</h1>
         <p class="price">{{ item.price | money: item.currency }}</p>
         <p class="sku faint">{{ 'product.sku' | t }} <span class="mono">{{ item.sku }}</span></p>
-        <p class="description">{{ item.description }}</p>
+        <p class="description">{{ item.description | localised: item.descriptionAr }}</p>
 
         <div class="buy">
           <label class="field qty">

@@ -544,7 +544,10 @@ cannot be reached directly. That decides what renders; the API decides what may
 actually be read or changed.
 
 The interface is bilingual English and Arabic, switchable at runtime, with the
-whole layout mirroring for RTL through CSS logical properties. Light and dark are
+whole layout mirroring for RTL through CSS logical properties. The catalogue is
+bilingual too: each product carries an optional Arabic name and description, both
+travel in one payload so switching language needs no refetch, and both are
+indexed for full-text search. Light and dark are
 joined by a third "match system" state that keeps following the operating system.
 Both choices survive a reload and are applied before first paint.
 
@@ -699,9 +702,9 @@ cd src/web/sama-web && npm install && npm start
 
 ```mermaid
 flowchart TB
-    e2e["24 end-to-end<br/>real browser, real stack, real saga"]
+    e2e["25 end-to-end<br/>real browser, real stack, real saga"]
     int["20 integration<br/>real PostgreSQL and Redis in Testcontainers"]
-    unit["154 unit<br/>94 .NET, 40 Angular, 20 Kotlin"]
+    unit["168 unit<br/>101 .NET, 47 Angular, 20 Kotlin"]
 
     unit --> int --> e2e
 ```

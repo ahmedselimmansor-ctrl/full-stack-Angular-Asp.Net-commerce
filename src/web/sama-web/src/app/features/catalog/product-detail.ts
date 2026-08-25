@@ -5,14 +5,14 @@ import { AuthService } from '../../core/auth.service';
 import { BasketStore } from '../../core/basket-store';
 import type { ProductDetail } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { LocaleService, MoneyPipe, TranslatePipe } from '../../core/i18n';
+import { LocaleService, LocalisedPipe, MoneyPipe, TranslatePipe, pickLocalised } from '../../core/i18n';
 import { ProductImage } from '../../shared/product-image';
 import { Skeleton } from '../../shared/ui/skeleton';
 
 @Component({
   selector: 'app-product-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, MoneyPipe, TranslatePipe, ProductImage, Skeleton],
+  imports: [RouterLink, MoneyPipe, TranslatePipe, LocalisedPipe, ProductImage, Skeleton],
   templateUrl: './product-detail.html',
   styleUrl: './product-detail.scss',
 })
@@ -38,6 +38,11 @@ export class ProductDetailPage {
     queueMicrotask(() => void this.load());
   }
 
+  /** Used for alt text and the basket toast, which are not rendered through a pipe. */
+  protected displayName(item: ProductDetail): string {
+    return pickLocalised(this.locale, item.name, item.nameAr);
+  }
+
   protected onQuantityChange(event: Event): void {
     this.quantity.set(Number((event.target as HTMLSelectElement).value));
   }
@@ -53,7 +58,9 @@ export class ProductDetailPage {
 
     try {
       await this.basket.add(item.id, this.quantity());
-      this.notifications.success(this.locale.t('product.addedNamed', { name: item.name }));
+      this.notifications.success(
+        this.locale.t('product.addedNamed', { name: this.displayName(item) }),
+      );
     } catch {
       // Already reported by the error interceptor.
     } finally {

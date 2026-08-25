@@ -64,16 +64,16 @@ test.describe('back office', () => {
 
     // A category has to exist first — products cannot be orphaned.
     await page.goto('/admin/categories');
-    await page.getByLabel('Name').fill(`E2E Goods ${stamp}`);
+    await page.getByLabel('Name', { exact: true }).fill(`E2E Goods ${stamp}`);
     await page.getByLabel('Slug').fill(`e2e-goods-${stamp}`);
     await page.getByRole('button', { name: /create category/i }).click();
     await expect(page.getByText(/created/i).first()).toBeVisible();
 
     await page.goto('/admin/products/new');
     await page.getByLabel('SKU').fill(`E2E-${stamp}`);
-    await page.getByLabel('Name').fill(name);
+    await page.getByLabel('Name', { exact: true }).fill(name);
     await page.getByLabel('URL slug').fill(slug);
-    await page.getByLabel('Description').fill('Created by the end-to-end suite.');
+    await page.getByLabel('Description', { exact: true }).fill('Created by the end-to-end suite.');
     await page.getByLabel('Category').selectOption({ label: `E2E Goods ${stamp}` });
     await page.getByLabel('Price').fill('31.50');
     await page.locator('.image-row input').first().fill('/media/e2e.jpg');
@@ -97,6 +97,60 @@ test.describe('back office', () => {
     await expect(row).toBeVisible();
     await row.getByRole('button', { name: 'Publish' }).click();
     await expect(page.getByText(/is now live/i)).toBeVisible();
+  });
+
+  test('carries an Arabic name from the back office to the Arabic storefront', async ({
+    page,
+    request,
+  }) => {
+    // The whole bilingual path in one pass: a buyer types the translation in the
+    // back office, and a customer reading Arabic sees it on the shop front while
+    // an English reader still sees the English name.
+    const admin = await makeAdministrator(request, 'admin-bilingual');
+    await signIn(page, admin);
+
+    const stamp = Date.now();
+    const english = `E2E Lantern ${stamp}`;
+    const arabic = `فانوس ${stamp}`;
+    const slug = `e2e-lantern-${stamp}`;
+
+    await page.goto('/admin/categories');
+    await page.getByLabel('Name', { exact: true }).fill(`E2E Bilingual ${stamp}`);
+    await page.getByLabel('Slug').fill(`e2e-bilingual-${stamp}`);
+    await page.getByRole('button', { name: /create category/i }).click();
+    await expect(page.getByText(/created/i).first()).toBeVisible();
+
+    await page.goto('/admin/products/new');
+    await page.getByLabel('SKU').fill(`E2E-AR-${stamp}`);
+    await page.getByLabel('Name', { exact: true }).fill(english);
+    await page.getByLabel('Name in Arabic').fill(arabic);
+    await page.getByLabel('URL slug').fill(slug);
+    await page.getByLabel('Description', { exact: true }).fill('Created by the end-to-end suite.');
+    await page.getByLabel('Description in Arabic').fill('أنشأته مجموعة الاختبارات.');
+    await page.getByLabel('Category').selectOption({ label: `E2E Bilingual ${stamp}` });
+    await page.getByLabel('Price').fill('42.00');
+    await page.locator('.image-row input').first().fill('/media/e2e.jpg');
+    await page.getByRole('button', { name: /create product/i }).click();
+
+    await expect(page).toHaveURL(/\/admin\/products\/[0-9a-f-]+/, { timeout: 30_000 });
+
+    await page.goto('/admin/products');
+    await page.getByRole('main').getByLabel('Search').fill(`E2E-AR-${stamp}`);
+    const row = page.locator('tbody tr').filter({ hasText: `E2E-AR-${stamp}` }).first();
+    await expect(row).toBeVisible();
+    await row.getByRole('button', { name: 'Publish' }).click();
+    await expect(page.getByText(/is now live/i)).toBeVisible();
+
+    // English reader sees the English name.
+    await page.goto(`/products/${slug}`);
+    await expect(page.getByRole('heading', { level: 1, name: english })).toBeVisible();
+
+    // Switching language re-renders from data already in the payload, so the
+    // Arabic name appears without another request for the product.
+    // The toggle appears in both the header and the footer, so it has to be scoped.
+    await page.getByRole('banner').getByRole('button', { name: /switch to arabic/i }).click();
+    await expect(page.getByRole('heading', { level: 1, name: arabic })).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   });
 
   test('refuses to set stock below what is already reserved', async ({ page, request }) => {
