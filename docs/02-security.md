@@ -5,6 +5,24 @@ implemented, not aspirational; each row names the file that does it.
 
 ---
 
+## 0. Defence in depth, at a glance
+
+```mermaid
+flowchart TB
+    attacker([Adversary]) --> l1{"Cloud Armor<br/>WAF, per-IP limits, DDoS"}
+    l1 --> l2{"Gateway<br/>token validation, route limits"}
+    l2 --> l3{"Service<br/>permission policy"}
+    l3 --> l4{"Data layer<br/>tenant and ownership filters"}
+    l4 --> l5{"Database<br/>role granted on one schema only"}
+    l5 --> data[(Rows the caller may see)]
+```
+
+Each layer catches what the one outside it cannot see. The innermost two matter most: a bug in
+an endpoint is contained by filters welded to the model, and a compromised service is contained
+by a database role that can only read its own schema.
+
+---
+
 ## 1. Threat model
 
 The platform holds customer identities, delivery addresses and order history, and it moves
@@ -33,6 +51,23 @@ Asymmetric signing is the load-bearing choice. With a shared HMAC secret, all si
 services would need the key that *mints* tokens, so compromising any one of them would let an
 attacker forge an administrator. With RSA they hold only the public key: they can verify, and
 they cannot issue.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active: issued
+    Active --> Consumed: exchanged for a new pair
+    Consumed --> [*]
+    Active --> Revoked: sign-out, or the family was revoked
+    Revoked --> [*]
+
+    note right of Consumed
+        Presenting a consumed token again
+        can only mean theft or a cloned
+        client, so the entire family is
+        revoked — attacker and legitimate
+        holder alike.
+    end note
+```
 
 **Rotation and theft detection** — `Features/Auth/TokenService.cs`.
 Every refresh consumes the presented token and issues a replacement in the same family. If a

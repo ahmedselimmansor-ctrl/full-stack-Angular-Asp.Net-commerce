@@ -22,7 +22,17 @@ transient dependency blip is to stop sending traffic, not to kill the process.
 
 ## 2. Deploys
 
-CI runs on a push to `main`: build → test → scan → push images → migrate → roll out.
+```mermaid
+flowchart LR
+    push([push to main]) --> build[build]
+    build --> test[test]
+    test --> scan["scan images<br/>Trivy, fail on fixable HIGH"]
+    scan --> pushimg["push, tagged with the commit SHA"]
+    pushimg --> migrate["migration Job<br/>must complete"]
+    migrate -->|success| rollout["rolling update<br/>maxUnavailable 0"]
+    migrate -->|failure| stop["pipeline fails<br/>old pods keep serving"]
+    rollout --> smoke["smoke test the public edge"]
+```
 
 The ordering is load-bearing. Schema migrations run as a **Job that must complete** before any
 new pod starts. Applying migrations from application startup instead would have every replica
@@ -100,6 +110,19 @@ UPDATE ordering.outbox_messages SET next_attempt_at = now(), attempts = 0 WHERE 
 ```
 
 ### An order is stuck in Pending or AwaitingPayment
+
+```mermaid
+flowchart TB
+    stuck([Order stuck]) --> q1{"Unprocessed<br/>outbox rows?"}
+    q1 -->|yes| q2{"Any parked?<br/>next_attempt_at IS NULL"}
+    q2 -->|yes| fix1["Read last_error, fix the cause,<br/>then replay the row"]
+    q2 -->|no| fix2["Broker unreachable —<br/>check the subscriber logs"]
+    q1 -->|no| q3{"Subscription<br/>exists?"}
+    q3 -->|no| fix3["Re-provision topics<br/>and subscriptions"]
+    q3 -->|yes| q4{"Dead-letter<br/>depth > 0?"}
+    q4 -->|yes| fix4["A consumer is failing;<br/>read the dead-lettered message"]
+    q4 -->|no| fix5["Cancel the order to release<br/>the stock it is holding"]
+```
 
 The saga did not complete. In order of likelihood:
 
