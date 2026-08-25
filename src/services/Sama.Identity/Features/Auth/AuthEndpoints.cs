@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Sama.Identity.Domain;
+using Sama.Identity.Features.Keys;
 using Sama.Identity.Persistence;
 using Sama.Shared.Infrastructure.Http;
 using Sama.Shared.Infrastructure.RateLimiting;
@@ -78,6 +80,8 @@ public static class AuthEndpoints
         IPasswordHasher<User> passwordHasher,
         ITenantContext tenantContext,
         TokenService tokens,
+        IOptions<SigningOptions> signingOptions,
+        IHostEnvironment environment,
         CancellationToken cancellationToken)
     {
         if (await Validate(validator, request, cancellationToken) is { } invalid)
@@ -120,6 +124,8 @@ public static class AuthEndpoints
             familyId: null,
             cancellationToken);
 
+        RefreshTokenCookie.Issue(context, issued.RefreshToken, signingOptions.Value.RefreshTokenDays, environment);
+
         return Results.Created($"/api/v1/users/{user.Id}", ToResponse(issued));
     }
 
@@ -132,6 +138,8 @@ public static class AuthEndpoints
         ITenantContext tenantContext,
         TokenService tokens,
         IOptions<AuthOptions> authOptions,
+        IOptions<SigningOptions> signingOptions,
+        IHostEnvironment environment,
         IClock clock,
         CancellationToken cancellationToken)
     {
@@ -205,43 +213,73 @@ public static class AuthEndpoints
             familyId: null,
             cancellationToken);
 
+        RefreshTokenCookie.Issue(context, issued.RefreshToken, signingOptions.Value.RefreshTokenDays, environment);
+
         return Results.Ok(ToResponse(issued));
     }
 
     private static async Task<IResult> RefreshAsync(
-        RefreshRequest request,
+        RefreshRequest? request,
         HttpContext context,
         TokenService tokens,
+        IOptions<SigningOptions> signingOptions,
+        IHostEnvironment environment,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.RefreshToken))
+        // Body first for native clients, cookie for the browser. The web client sends an empty
+        // body precisely because it never holds the token.
+        var presented = request?.RefreshToken;
+        if (string.IsNullOrWhiteSpace(presented))
+        {
+            presented = RefreshTokenCookie.Read(context);
+        }
+
+        if (string.IsNullOrWhiteSpace(presented))
         {
             return Error.Validation("auth.refresh.missing", "A refresh token is required.").ToProblem();
         }
 
         var result = await tokens.RefreshAsync(
-            request.RefreshToken,
+            presented,
             context.Connection.RemoteIpAddress?.ToString(),
             context.Request.Headers.UserAgent.ToString(),
             cancellationToken);
 
-        return result.IsSuccess
-            ? Results.Ok(ToResponse(result.Value))
-            : result.Error.ToProblem();
+        if (result.IsFailure)
+        {
+            // The presented token is dead; drop the cookie so the browser stops replaying it
+            // and the user is sent cleanly back to sign-in.
+            RefreshTokenCookie.Clear(context, environment);
+            return result.Error.ToProblem();
+        }
+
+        // Rotation replaced the token, so the cookie has to follow it.
+        RefreshTokenCookie.Issue(context, result.Value.RefreshToken, signingOptions.Value.RefreshTokenDays, environment);
+
+        return Results.Ok(ToResponse(result.Value));
     }
 
     private static async Task<IResult> LogoutAsync(
-        LogoutRequest request,
+        LogoutRequest? request,
         HttpContext context,
         TokenService tokens,
         RedisTokenRevocationStore revocations,
+        IHostEnvironment environment,
         IClock clock,
         CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrWhiteSpace(request.RefreshToken))
+        var presented = request?.RefreshToken;
+        if (string.IsNullOrWhiteSpace(presented))
         {
-            await tokens.RevokeAsync(request.RefreshToken, cancellationToken);
+            presented = RefreshTokenCookie.Read(context);
         }
+
+        if (!string.IsNullOrWhiteSpace(presented))
+        {
+            await tokens.RevokeAsync(presented, cancellationToken);
+        }
+
+        RefreshTokenCookie.Clear(context, environment);
 
         // Revoking the refresh token alone would leave the current access token usable for up
         // to its full lifetime; denylist it for whatever remains of that.

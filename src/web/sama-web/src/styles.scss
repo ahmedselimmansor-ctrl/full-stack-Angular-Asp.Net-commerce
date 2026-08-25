@@ -1,0 +1,155 @@
+/* Sama design tokens and base styles.
+   Deliberately small: one accent, a neutral ramp, and generous spacing. A storefront's job is
+   to make products legible, so the chrome stays quiet. */
+
+:root {
+  --sama-bg: #fbfaf8;
+  --sama-surface: #ffffff;
+  --sama-surface-alt: #f4f2ee;
+  --sama-border: #e4e0d8;
+  --sama-ink: #1c1a17;
+  --sama-ink-soft: #6b655c;
+  --sama-accent: #8a5a2b;
+  --sama-accent-ink: #ffffff;
+  --sama-accent-soft: #f3e9df;
+  --sama-danger: #a12d2d;
+  --sama-success: #2f6b45;
+
+  --sama-radius: 10px;
+  --sama-radius-sm: 6px;
+  --sama-shadow: 0 1px 2px rgb(28 26 23 / 6%), 0 8px 24px rgb(28 26 23 / 6%);
+
+  --sama-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sama-serif: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sama-bg: #171614;
+    --sama-surface: #201e1b;
+    --sama-surface-alt: #2a2724;
+    --sama-border: #3a3631;
+    --sama-ink: #f2efe9;
+    --sama-ink-soft: #a49d92;
+    --sama-accent: #c98d54;
+    --sama-accent-ink: #171614;
+    --sama-accent-soft: #2f2721;
+    --sama-danger: #e08585;
+    --sama-success: #7cc79b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--sama-bg);
+  color: var(--sama-ink);
+  font-family: var(--sama-font);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+h1, h2, h3 {
+  font-family: var(--sama-serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+
+h1 { font-size: clamp(1.75rem, 1.2rem + 2vw, 2.5rem); }
+h2 { font-size: 1.375rem; }
+
+.sama-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.sama-card {
+  background: var(--sama-surface);
+  border: 1px solid var(--sama-border);
+  border-radius: var(--sama-radius);
+  padding: 1.25rem;
+}
+
+.sama-muted { color: var(--sama-ink-soft); }
+
+.sama-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: var(--sama-radius-sm);
+  background: var(--sama-accent);
+  color: var(--sama-accent-ink);
+  font: inherit;
+  font-weight: 550;
+  cursor: pointer;
+  transition: filter 120ms ease, opacity 120ms ease;
+}
+
+.sama-button:hover:not(:disabled) { filter: brightness(1.08); }
+.sama-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sama-button--ghost {
+  background: transparent;
+  color: var(--sama-ink);
+  border-color: var(--sama-border);
+}
+
+.sama-button--danger { background: var(--sama-danger); color: #fff; }
+
+.sama-field { display: block; margin-bottom: 1rem; }
+
+.sama-field > span {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 550;
+  margin-bottom: 0.3rem;
+  color: var(--sama-ink-soft);
+}
+
+.sama-field input,
+.sama-field select {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--sama-border);
+  border-radius: var(--sama-radius-sm);
+  background: var(--sama-surface);
+  color: var(--sama-ink);
+  font: inherit;
+}
+
+.sama-field input:focus-visible,
+.sama-field select:focus-visible,
+.sama-button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--sama-accent);
+  outline-offset: 2px;
+}
+
+.sama-error {
+  color: var(--sama-danger);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* Respect a reduced-motion preference rather than assuming everyone wants animation. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

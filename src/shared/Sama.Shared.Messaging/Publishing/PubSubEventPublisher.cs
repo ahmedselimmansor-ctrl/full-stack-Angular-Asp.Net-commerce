@@ -62,11 +62,36 @@ public sealed class PubSubEventPublisher : IEventPublisher, IAsyncDisposable
             message.Attributes["tenantId"] = tenantId.ToString("N");
         }
 
-        var serverId = await publisher.PublishAsync(message);
+        try
+        {
+            var serverId = await publisher.PublishAsync(message);
 
-        _logger.LogDebug(
-            "Published {EventType} ({MessageId}) to {Topic} as {ServerId}.",
-            request.EventType, request.MessageId, topicId, serverId);
+            _logger.LogDebug(
+                "Published {EventType} ({MessageId}) to {Topic} as {ServerId}.",
+                request.EventType, request.MessageId, topicId, serverId);
+        }
+        catch (Exception ex)
+        {
+            // A failed publish puts its ordering key into a permanent error state: the client
+            // then refuses every later publish on that key to preserve ordering, and does so
+            // for the life of the process. Since the key is the tenant, one transient failure
+            // would silently halt that tenant's entire event stream until a restart.
+            //
+            // Clearing the state hands sequencing back to the outbox, which still holds the
+            // message and will redeliver it in order on the next pass.
+            if (message.OrderingKey.Length > 0)
+            {
+                publisher.ResumePublish(message.OrderingKey);
+
+                _logger.LogWarning(
+                    ex,
+                    "Publish of {EventType} failed; resumed ordering key {OrderingKey} so later events are not blocked.",
+                    request.EventType, message.OrderingKey);
+            }
+
+            // Rethrown so the outbox records the failure, backs off, and retries.
+            throw;
+        }
     }
 
     private async Task<PublisherClient> CreatePublisherAsync(string topicId)

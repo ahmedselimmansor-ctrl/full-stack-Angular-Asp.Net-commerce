@@ -1,0 +1,16 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+**/.gradle/
+**/build/
+!build/docker/
+.git/
+.github/
+.logs/
+deploy/terraform/.terraform/
+docs/
+**/*.md
+**/.env*
+**/appsettings.Local.json

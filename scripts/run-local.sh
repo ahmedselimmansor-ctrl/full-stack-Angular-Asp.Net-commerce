@@ -51,6 +51,15 @@ case "${1:-start}" in
     ;;
 esac
 
+# The emulator keeps topics and subscriptions in memory, so they vanish whenever its
+# container restarts. Provisioning on every start makes that invisible instead of surfacing
+# later as a saga that silently stops halfway.
+if [ "${SAMA_SKIP_PUBSUB_PROVISION:-}" != "1" ]; then
+  "$ROOT/scripts/provision-pubsub.sh" >/dev/null 2>&1 \
+    && echo "Pub/Sub topics and subscriptions provisioned" \
+    || echo "warning: could not provision Pub/Sub (is the emulator running?)"
+fi
+
 for entry in "${services[@]}"; do
   name="${entry%%:*}"; port="${entry##*:}"
   ( cd "$ROOT/src/services/Sama.$name" && \
