@@ -54,3 +54,6 @@ sa-key*.json
 *.swp
 .DS_Store
 Thumbs.db
+
+# Local run logs from scripts/run-local.sh
+.logs/

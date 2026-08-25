@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,6 +78,11 @@ public static class SamaServiceDefaults
                 loggerConfiguration.WriteTo.Console(new GoogleCloudJsonFormatter(projectId));
             }
         });
+
+        // Kestrel appends "Server: Kestrel" as the response is written, after any middleware
+        // has run - so stripping it in middleware does not work, and the gateway happily
+        // copies the backend's header onward. Turn it off at the source, in every service.
+        builder.Services.Configure<KestrelServerOptions>(options => options.AddServerHeader = false);
 
         builder.Services.AddSingleton<IClock, SystemClock>();
 

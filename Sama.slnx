@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/src/" />
+  <Folder Name="/src/gateway/">
+    <Project Path="src/gateway/Sama.Gateway/Sama.Gateway.csproj" />
+  </Folder>
   <Folder Name="/src/services/">
     <Project Path="src/services/Sama.Basket/Sama.Basket.csproj" />
     <Project Path="src/services/Sama.Catalog/Sama.Catalog.csproj" />

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Sama.Gateway</RootNamespace>
+    <IsServiceProject>true</IsServiceProject>
+    <UserSecretsId>sama-gateway</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Yarp.ReverseProxy" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../shared/Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Security/Sama.Shared.Security.csproj" />
+    <ProjectReference Include="../../shared/Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
