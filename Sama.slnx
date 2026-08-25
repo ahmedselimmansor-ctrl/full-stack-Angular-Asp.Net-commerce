@@ -4,6 +4,9 @@
     <Project Path="src/services/Sama.Basket/Sama.Basket.csproj" />
     <Project Path="src/services/Sama.Catalog/Sama.Catalog.csproj" />
     <Project Path="src/services/Sama.Identity/Sama.Identity.csproj" />
+    <Project Path="src/services/Sama.Inventory/Sama.Inventory.csproj" />
+    <Project Path="src/services/Sama.Ordering/Sama.Ordering.csproj" />
+    <Project Path="src/services/Sama.Payment/Sama.Payment.csproj" />
   </Folder>
   <Folder Name="/src/shared/">
     <Project Path="src/shared/Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />

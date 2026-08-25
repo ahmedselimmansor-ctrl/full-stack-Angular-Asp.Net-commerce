@@ -55,7 +55,7 @@ public sealed class CatalogClient(HttpClient httpClient, ILogger<CatalogClient> 
             }
 
             var pricing = await response.Content.ReadFromJsonAsync<List<ProductPricing>>(
-                SamaJson.Default, cancellationToken);
+                SamaJson.Lenient, cancellationToken);
 
             return Result.Success<IReadOnlyList<ProductPricing>>(pricing ?? []);
         }

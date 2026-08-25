@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Sama.Shared.Infrastructure.Redis;
 using Sama.Shared.Messaging.Publishing;
+using Sama.Shared.Security.Tenancy;
 using StackExchange.Redis;
 
 namespace Sama.Shared.Messaging.Consuming;
@@ -200,6 +201,15 @@ public sealed class PubSubSubscriberService(
         try
         {
             using var scope = scopeFactory.CreateScope();
+
+            // Establish the producing tenant for this handler's scope. Without it the handler
+            // runs with no tenant, and every tenant-scoped query it makes silently returns
+            // nothing — the failure mode is missing work, not an error.
+            if (Guid.TryParse(message.Attributes.GetValueOrDefault("tenantId"), out var tenantId))
+            {
+                scope.ServiceProvider.GetService<ITenantScopeSetter>()?.SetTenant(tenantId);
+            }
+
             var payload = message.Data.ToStringUtf8();
 
             await dispatcher(scope.ServiceProvider, payload, cancellationToken);

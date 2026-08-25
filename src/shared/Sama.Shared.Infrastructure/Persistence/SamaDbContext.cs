@@ -223,6 +223,32 @@ public abstract class SamaDbContext : DbContext
         }
     }
 
+    /// <summary>
+    /// Queues an event that no aggregate raised, to be published by the same transaction as
+    /// the surrounding change.
+    /// <para>
+    /// Most events belong to an aggregate and are raised on it. A few genuinely do not — a
+    /// saga step that <i>declines</i> has, by definition, written no aggregate to hang an
+    /// event off, yet the refusal still has to reach the orchestrator exactly as durably as a
+    /// success would.
+    /// </para>
+    /// </summary>
+    public void EnqueueIntegrationEvent(IDomainEvent integrationEvent, Guid? tenantId = null)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+
+        OutboxMessages.Add(new OutboxMessage
+        {
+            Id = SamaId.New(),
+            Type = integrationEvent.EventType,
+            Payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), SamaJson.Default),
+            OccurredAt = integrationEvent.OccurredAt,
+            NextAttemptAt = _clock.UtcNow,
+            TenantId = tenantId ?? _tenantContext.TenantId,
+            TraceParent = Activity.Current?.Id,
+        });
+    }
+
     private void EnqueueDomainEvents(DateTimeOffset now)
     {
         var traceParent = Activity.Current?.Id;

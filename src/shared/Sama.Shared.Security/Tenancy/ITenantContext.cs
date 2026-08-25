@@ -40,7 +40,19 @@ public sealed class TenantResolutionOptions
     public Dictionary<string, Guid> Hosts { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
-public sealed class HttpTenantContext : ITenantContext
+/// <summary>
+/// Lets a non-HTTP entry point declare which tenant a unit of work belongs to.
+/// <para>
+/// Resolved only by the message dispatcher, never by application code — a handler that could
+/// re-point its own tenant would defeat the isolation the query filter provides.
+/// </para>
+/// </summary>
+public interface ITenantScopeSetter
+{
+    void SetTenant(Guid tenantId);
+}
+
+public sealed class ScopedTenantContext : ITenantContext, ITenantScopeSetter
 {
     /// <summary>
     /// Resolved once, in the constructor, rather than on each read.
@@ -60,15 +72,33 @@ public sealed class HttpTenantContext : ITenantContext
     /// after authentication has run.
     /// </para>
     /// </summary>
-    public HttpTenantContext(IHttpContextAccessor accessor, IOptions<TenantResolutionOptions> options)
+    public ScopedTenantContext(IHttpContextAccessor accessor, IOptions<TenantResolutionOptions> options)
     {
         ArgumentNullException.ThrowIfNull(accessor);
         ArgumentNullException.ThrowIfNull(options);
 
-        TenantId = Resolve(accessor.HttpContext, options.Value);
+        _fromRequest = Resolve(accessor.HttpContext, options.Value);
     }
 
-    public Guid? TenantId { get; }
+    private readonly Guid? _fromRequest;
+    private Guid? _explicit;
+
+    /// <summary>
+    /// An explicitly-declared tenant wins. That is the message-consumer path: an integration
+    /// event arrives outside any request, carrying the tenant it was produced for, and the
+    /// handler's queries must be scoped to that tenant rather than to none.
+    /// </summary>
+    public Guid? TenantId => _explicit ?? _fromRequest;
+
+    public void SetTenant(Guid tenantId)
+    {
+        if (tenantId == Guid.Empty)
+        {
+            throw new ArgumentException("An empty tenant id cannot be established.", nameof(tenantId));
+        }
+
+        _explicit = tenantId;
+    }
 
     private static Guid? Resolve(HttpContext? context, TenantResolutionOptions options)
     {

@@ -137,7 +137,9 @@ public static class SamaServiceDefaults
             .Bind(configuration.GetSection(TenantResolutionOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        builder.Services.TryAddScoped<ITenantContext, HttpTenantContext>();
+        builder.Services.TryAddScoped<ScopedTenantContext>();
+        builder.Services.TryAddScoped<ITenantContext>(sp => sp.GetRequiredService<ScopedTenantContext>());
+        builder.Services.TryAddScoped<ITenantScopeSetter>(sp => sp.GetRequiredService<ScopedTenantContext>());
 
         if (useRemoteAuthentication)
         {

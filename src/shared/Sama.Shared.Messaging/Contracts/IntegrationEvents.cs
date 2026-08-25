@@ -64,6 +64,15 @@ public sealed record StockReservationRejected(
 // Payment
 // ---------------------------------------------------------------------------------------
 
+/// <summary>
+/// Raised by Ordering, consumed by Payment.
+/// <para>
+/// Note the <c>ordering.</c> prefix despite the subject being a payment: the topic is derived
+/// from the first segment, and the invariant that keeps routing comprehensible is
+/// <i>one topic per publishing service</i>. Naming this <c>payment.*</c> would publish it to
+/// the topic Payment itself owns, leaving that service subscribed to its own output.
+/// </para>
+/// </summary>
 public sealed record PaymentRequested(
     Guid OrderId,
     Guid TenantId,
@@ -71,7 +80,7 @@ public sealed record PaymentRequested(
     decimal Amount,
     string Currency) : IntegrationEvent
 {
-    public override string EventType => "payment.payment.requested.v1";
+    public override string EventType => "ordering.payment.requested.v1";
 }
 
 public sealed record PaymentSucceeded(
