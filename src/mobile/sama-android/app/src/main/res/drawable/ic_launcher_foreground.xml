@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Vector rather than a set of PNGs: one file scales to every density, keeps the APK small, and
+  avoids shipping five near-identical bitmaps.
+
+  Adaptive-icon foregrounds are 108dp with only the central 72dp guaranteed visible — the
+  launcher may mask or animate the rest — so the monogram is inset well inside that safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- An "S" for Sama, drawn as a stroked path so it stays crisp at any size. -->
+    <path
+        android:pathData="M66,40 C66,34 60,30 54,30 C47,30 42,34 42,40 C42,46 47,49 54,52 C61,55 66,58 66,64 C66,70 61,74 54,74 C47,74 42,70 42,64"
+        android:strokeColor="@color/sama_sand"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

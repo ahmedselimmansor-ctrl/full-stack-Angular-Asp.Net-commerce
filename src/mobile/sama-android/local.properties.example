@@ -1,0 +1,3 @@
+# Copy to local.properties and point at your Android SDK. Never committed: the path is
+# specific to one machine.
+sdk.dir=/home/you/Android/Sdk

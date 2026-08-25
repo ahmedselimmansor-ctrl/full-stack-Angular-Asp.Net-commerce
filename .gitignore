@@ -25,6 +25,9 @@ local.properties
 *.aab
 *.keystore
 .cxx/
+# The wrapper jar is committed on purpose: it is what lets a fresh checkout build without
+# Gradle already installed, and it is the mechanism the wrapper's own integrity check verifies.
+!gradle/wrapper/gradle-wrapper.jar
 
 # ---- Terraform ----
 .terraform/
@@ -57,3 +60,7 @@ Thumbs.db
 
 # Local run logs from scripts/run-local.sh
 .logs/
+
+# ---- Android build outputs & local SDK path ----
+src/mobile/sama-android/local.properties
+src/mobile/sama-android/.kotlin/

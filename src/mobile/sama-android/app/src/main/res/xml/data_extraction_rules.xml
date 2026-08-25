@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Nothing this app stores is eligible for cloud backup or device transfer. The encrypted
+  preferences hold a refresh token bound to this device's hardware keystore; copying that file
+  elsewhere would produce an unreadable blob at best, and a portable credential at worst.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
+    </device-transfer>
+</data-extraction-rules>
