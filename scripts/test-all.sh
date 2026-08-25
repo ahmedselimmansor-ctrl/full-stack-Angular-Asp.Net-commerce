@@ -13,7 +13,7 @@ SUITES=(test-auth.sh test-catalog.sh test-basket.sh test-saga.sh test-gateway.sh
 FAILED=()
 
 for suite in "${SUITES[@]}"; do
-  printf '\n\033[1m══ %s ══\033[0m\n' "$suite"
+  printf '\n\033[1m== %s ==\033[0m\n' "$suite"
   if ./"$suite"; then
     printf '\033[32m%s passed\033[0m\n' "$suite"
   else
@@ -22,7 +22,7 @@ for suite in "${SUITES[@]}"; do
   fi
 done
 
-printf '\n\033[1m══ summary ══\033[0m\n'
+printf '\n\033[1m== summary ==\033[0m\n'
 if [ ${#FAILED[@]} -eq 0 ]; then
   printf '\033[32mAll %d suites passed.\033[0m\n' "${#SUITES[@]}"
   exit 0

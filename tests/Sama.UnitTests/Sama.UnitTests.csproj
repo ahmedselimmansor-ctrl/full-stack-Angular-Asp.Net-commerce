@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- xUnit v3 test projects are executables: the runner is compiled in rather than
+         supplied by a separate host, which is what makes `dotnet run` on a test project work. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!-- The .NET 10 SDK no longer runs tests through VSTest. xUnit v3 targets
+         Microsoft.Testing.Platform, and this is what makes `dotnet test` drive it. -->
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <UseVSTest>false</UseVSTest>
+
+    <!-- Test names read as sentences; the analyzer's naming rules fight that. -->
+    <NoWarn>$(NoWarn);CA1707;CA2201;CA1861</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Applied to every file, so a test class does not open with boilerplate. -->
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/shared/Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
+    <ProjectReference Include="../../src/shared/Sama.Shared.Security/Sama.Shared.Security.csproj" />
+    <ProjectReference Include="../../src/shared/Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/services/Sama.Ordering/Sama.Ordering.csproj" />
+    <ProjectReference Include="../../src/services/Sama.Inventory/Sama.Inventory.csproj" />
+    <ProjectReference Include="../../src/services/Sama.Basket/Sama.Basket.csproj" />
+    <ProjectReference Include="../../src/services/Sama.Identity/Sama.Identity.csproj" />
+  </ItemGroup>
+
+</Project>

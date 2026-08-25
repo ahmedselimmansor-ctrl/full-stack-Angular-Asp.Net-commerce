@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <UseVSTest>false</UseVSTest>
+    <NoWarn>$(NoWarn);CA1707;CA2201;CA1861</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <!-- Real Postgres and Redis in throwaway containers. An in-memory substitute would not
+         exercise the things these tests exist to prove: query filters translating to SQL,
+         partial indexes, Lua atomicity, xmin concurrency. -->
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.Redis" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/shared/Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
+    <ProjectReference Include="../../src/shared/Sama.Shared.Security/Sama.Shared.Security.csproj" />
+    <ProjectReference Include="../../src/shared/Sama.Shared.Infrastructure/Sama.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/services/Sama.Catalog/Sama.Catalog.csproj" />
+    <ProjectReference Include="../../src/services/Sama.Ordering/Sama.Ordering.csproj" />
+  </ItemGroup>
+
+</Project>

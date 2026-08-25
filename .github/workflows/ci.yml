@@ -19,25 +19,10 @@ jobs:
   backend:
     name: Backend build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: sama
-          POSTGRES_PASSWORD: sama_ci_password
-          POSTGRES_DB: sama
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U sama" --health-interval 5s
-          --health-timeout 3s --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports: ['6379:6379']
-        options: >-
-          --health-cmd "redis-cli ping" --health-interval 5s
-          --health-timeout 3s --health-retries 10
+    # No service containers: the integration suite starts its own PostgreSQL and Redis through
+    # Testcontainers, so it controls their lifecycle and cannot collide with a shared one.
 
     steps:
       - uses: actions/checkout@v4
@@ -59,10 +44,13 @@ jobs:
       # machine where someone has it configured differently.
       - run: dotnet build Sama.slnx --configuration Release --no-restore -warnaserror
 
-      - run: dotnet test Sama.slnx --configuration Release --no-build --verbosity normal
-        env:
-          SAMA_TEST_POSTGRES: Host=localhost;Port=5432;Database=sama;Username=sama;Password=sama_ci_password
-          SAMA_TEST_REDIS: localhost:6379
+      - name: Unit tests
+        run: dotnet test tests/Sama.UnitTests/Sama.UnitTests.csproj --configuration Release --no-build
+
+      - name: Integration tests
+        # Starts real PostgreSQL and Redis in containers. Slower than the unit suite, and the
+        # only thing that proves query filters translate to SQL and the Lua scripts are atomic.
+        run: dotnet test tests/Sama.IntegrationTests/Sama.IntegrationTests.csproj --configuration Release --no-build
 
   frontend:
     name: Storefront build

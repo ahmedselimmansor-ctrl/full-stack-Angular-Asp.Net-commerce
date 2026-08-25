@@ -27,6 +27,13 @@
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Naming conversion stays internal - it is an implementation detail of model building,
+         not something a service should call - but its edge cases (acronym runs, digits) are
+         worth testing directly rather than inferring from a generated migration. -->
+    <InternalsVisibleTo Include="Sama.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Sama.Shared.Kernel/Sama.Shared.Kernel.csproj" />
     <ProjectReference Include="../Sama.Shared.Security/Sama.Shared.Security.csproj" />
   </ItemGroup>

@@ -17,4 +17,8 @@
     <Project Path="src/shared/Sama.Shared.Messaging/Sama.Shared.Messaging.csproj" />
     <Project Path="src/shared/Sama.Shared.Security/Sama.Shared.Security.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sama.IntegrationTests/Sama.IntegrationTests.csproj" />
+    <Project Path="tests/Sama.UnitTests/Sama.UnitTests.csproj" />
+  </Folder>
 </Solution>
