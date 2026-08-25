@@ -1,8 +1,9 @@
 package com.sama.shop
 
 import com.sama.shop.ui.formatMoney
-import com.sama.shop.ui.orderStatusLabel
+import com.sama.shop.ui.orderStatusLabelRes
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Locale
@@ -33,16 +34,22 @@ class FormattingTest {
     }
 
     @Test
-    fun `translates the saga's internal states into customer wording`() {
+    fun `maps the saga's internal states onto customer-facing strings`() {
         // "AwaitingPayment" describes a saga step accurately and confuses a shopper.
-        assertEquals("Taking payment", orderStatusLabel("AwaitingPayment"))
-        assertEquals("Processing", orderStatusLabel("Pending"))
-        assertEquals("Confirmed", orderStatusLabel("Confirmed"))
+        // The mapping returns a resource id rather than finished text, so the label
+        // follows the device language instead of being English on an Arabic phone;
+        // that also keeps it a pure function this test can call directly.
+        assertEquals(R.string.status_awaiting_payment, orderStatusLabelRes("AwaitingPayment"))
+        assertEquals(R.string.status_pending, orderStatusLabelRes("Pending"))
+        assertEquals(R.string.status_confirmed, orderStatusLabelRes("Confirmed"))
+        assertEquals(R.string.status_shipped, orderStatusLabelRes("Shipped"))
+        assertEquals(R.string.status_cancelled, orderStatusLabelRes("Cancelled"))
     }
 
     @Test
-    fun `passes an unrecognised status through rather than hiding it`() {
-        // Showing nothing would make a newly-added server-side state look like a bug in the app.
-        assertEquals("Refunding", orderStatusLabel("Refunding"))
+    fun `has no resource for an unrecognised status, so the caller shows it verbatim`() {
+        // Showing nothing would make a newly-added server-side state look like a bug
+        // in the app; null tells the caller to fall back to the wire value.
+        assertNull(orderStatusLabelRes("Refunding"))
     }
 }

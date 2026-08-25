@@ -704,7 +704,7 @@ cd src/web/sama-web && npm install && npm start
 flowchart TB
     e2e["25 end-to-end<br/>real browser, real stack, real saga"]
     int["20 integration<br/>real PostgreSQL and Redis in Testcontainers"]
-    unit["170 unit<br/>101 .NET, 49 Angular, 20 Kotlin"]
+    unit["174 unit<br/>101 .NET, 49 Angular, 24 Kotlin"]
 
     unit --> int --> e2e
 ```
@@ -714,7 +714,7 @@ flowchart TB
 | .NET unit | `dotnet test tests/Sama.UnitTests` | Money rounding, Result, access scopes, aggregates driven out of order |
 | .NET integration | `dotnet test tests/Sama.IntegrationTests` | Query filters becoming SQL, partial indexes, Lua atomicity under concurrency |
 | Angular unit | `./scripts/test-web.sh` | Auth service, interceptors, guards, theme, translations, RTL encapsulation |
-| Kotlin unit | `cd src/mobile/sama-android && ./gradlew test` | Currency precision, wire-contract tolerance |
+| Kotlin unit | `cd src/mobile/sama-android && ./gradlew test` | Currency precision, wire-contract tolerance, English/Arabic string parity |
 | End-to-end | `cd tests/e2e && npm test` | Browse, register, checkout, saga settlement, back office |
 | Shell (API) | `./scripts/test-all.sh` | Five suites against the running stack |
 | Contrast | `./scripts/check-contrast.py` | Every rendered colour pairing against WCAG AA, both themes |

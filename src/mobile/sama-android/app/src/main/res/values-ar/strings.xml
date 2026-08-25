@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Arabic. Android picks this set when the device language is Arabic and, because
+  the manifest declares android:supportsRtl, mirrors the layout with it.
+-->
+<resources>
+    <string name="nav_basket">السلة</string>
+    <string name="nav_orders">طلباتك</string>
+    <string name="nav_account">حسابك</string>
+    <string name="nav_back">رجوع</string>
+    <string name="nav_search">بحث</string>
+
+    <string name="catalogue_failed">تعذّر تحميل الكتالوج</string>
+    <string name="catalogue_retry">حاول مرة أخرى</string>
+    <string name="catalogue_empty">لا نتائج مطابقة لهذا البحث.</string>
+    <string name="product_fallback_title">منتج</string>
+    <string name="product_gone">هذا المنتج لم يعد متاحاً.</string>
+    <string name="product_add_to_basket">أضف إلى السلة</string>
+
+    <string name="basket_title">سلّتك</string>
+    <string name="basket_empty">سلّتك فارغة.</string>
+    <string name="basket_remove">إزالة</string>
+    <string name="basket_add_one">إضافة</string>
+    <string name="basket_subtotal">المجموع الفرعي</string>
+    <string name="basket_checkout">إتمام الطلب</string>
+    <string name="basket_line">%1$s × %2$s</string>
+
+    <string name="checkout_address">العنوان</string>
+    <string name="checkout_city">المدينة</string>
+    <string name="checkout_postcode">الرمز البريدي</string>
+    <string name="checkout_country">الدولة (رمز ISO)</string>
+    <string name="checkout_place_order">تأكيد الطلب</string>
+    <string name="checkout_placing">جارٍ تأكيد طلبك…</string>
+    <string name="checkout_total">الإجمالي</string>
+
+    <string name="orders_title">طلباتك</string>
+    <string name="orders_empty">لا طلبات لديك بعد.</string>
+    <string name="orders_cancel">إلغاء الطلب</string>
+    <string name="orders_cancel_reason">ألغاه العميل.</string>
+    <string name="orders_settling">نؤكّد توفّر القطع وإتمام الدفع. يتحدّث هذا تلقائياً.</string>
+
+    <string name="status_pending">قيد المعالجة</string>
+    <string name="status_awaiting_payment">بانتظار الدفع</string>
+    <string name="status_confirmed">مؤكَّد</string>
+    <string name="status_shipped">تم الشحن</string>
+    <string name="status_cancelled">ملغى</string>
+
+    <string name="auth_email">البريد الإلكتروني</string>
+    <string name="auth_password">كلمة المرور</string>
+    <string name="auth_name">الاسم</string>
+    <string name="auth_sign_in">تسجيل الدخول</string>
+    <string name="auth_sign_out">تسجيل الخروج</string>
+    <string name="auth_create_account">إنشاء حساب</string>
+    <string name="auth_create_account_title">أنشئ حسابك</string>
+    <string name="auth_have_account">لديّ حساب بالفعل</string>
+    <string name="auth_password_hint">اثنا عشر حرفاً على الأقل، تتضمّن حرفاً ورقماً.</string>
+    <string name="account_signed_in_as">مسجّل الدخول باسم %1$s</string>
+
+    <string name="common_please_wait">لحظة من فضلك…</string>
+</resources>

@@ -99,3 +99,14 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
 }
+
+// TranslationsTest reads the string resources straight off disk to compare the
+// English and Arabic sets, which Gradle cannot infer. Without declaring them as
+// inputs the test task stays up-to-date when only a translation changes -- so the
+// one guard that watches translations would be skipped by exactly the edit it
+// exists to catch.
+tasks.withType<Test>().configureEach {
+    inputs.dir(layout.projectDirectory.dir("src/main/res"))
+        .withPropertyName("stringResources")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

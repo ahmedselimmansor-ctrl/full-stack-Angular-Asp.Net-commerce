@@ -30,6 +30,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.res.stringResource
+import com.sama.shop.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,13 +76,13 @@ fun CatalogScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Sama") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onOpenBasket) {
-                        Icon(Icons.Filled.ShoppingCart, contentDescription = "Basket")
+                        Icon(Icons.Filled.ShoppingCart, contentDescription = stringResource(R.string.nav_basket))
                     }
-                    TextButton(onClick = onOpenOrders) { Text("Orders") }
-                    TextButton(onClick = onSignIn) { Text("Account") }
+                    TextButton(onClick = onOpenOrders) { Text(stringResource(R.string.nav_orders)) }
+                    TextButton(onClick = onSignIn) { Text(stringResource(R.string.nav_account)) }
                 },
             )
         },
@@ -89,7 +91,7 @@ fun CatalogScreen(
             OutlinedTextField(
                 value = state.query,
                 onValueChange = viewModel::onQueryChanged,
-                label = { Text("Search") },
+                label = { Text(stringResource(R.string.nav_search)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
             )
@@ -101,14 +103,14 @@ fun CatalogScreen(
                 state.error != null ->
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("We couldn't load the catalogue", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.catalogue_failed), style = MaterialTheme.typography.titleMedium)
                             Spacer(Modifier.height(8.dp))
-                            Button(onClick = { viewModel.load() }) { Text("Try again") }
+                            Button(onClick = { viewModel.load() }) { Text(stringResource(R.string.catalogue_retry)) }
                         }
                     }
 
                 state.products.isEmpty() ->
-                    Box(Modifier.fillMaxSize(), Alignment.Center) { Text("Nothing matched that search.") }
+                    Box(Modifier.fillMaxSize(), Alignment.Center) { Text(stringResource(R.string.catalogue_empty)) }
 
                 else -> LazyColumn(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
@@ -157,7 +159,7 @@ private fun ProductRow(product: ProductSummary, onClick: () -> Unit, onAdd: () -
                 )
             }
 
-            Button(onClick = onAdd) { Text("Add") }
+            Button(onClick = onAdd) { Text(stringResource(R.string.basket_add_one)) }
         }
     }
 }
@@ -183,10 +185,10 @@ fun ProductScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(product?.name ?: "Product") },
+                title = { Text(product?.name ?: stringResource(R.string.product_fallback_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                     }
                 },
             )
@@ -198,7 +200,7 @@ fun ProductScreen(
             }
 
             product == null -> Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                Text("This product is no longer available.")
+                Text(stringResource(R.string.product_gone))
             }
 
             else -> {
@@ -240,7 +242,7 @@ fun ProductScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Add to basket") }
+                    ) { Text(stringResource(R.string.product_add_to_basket)) }
                 }
             }
         }
@@ -258,10 +260,10 @@ fun BasketScreen(viewModel: BasketViewModel, onBack: () -> Unit, onCheckout: () 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Your basket") },
+                title = { Text(stringResource(R.string.basket_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                     }
                 },
             )
@@ -271,7 +273,7 @@ fun BasketScreen(viewModel: BasketViewModel, onBack: () -> Unit, onCheckout: () 
 
         if (current == null || current.items.isEmpty()) {
             Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                Text("Your basket is empty.")
+                Text(stringResource(R.string.basket_empty))
             }
             return@Scaffold
         }
@@ -298,7 +300,7 @@ fun BasketScreen(viewModel: BasketViewModel, onBack: () -> Unit, onCheckout: () 
                             TextButton(
                                 onClick = { viewModel.remove(line.productId) },
                                 enabled = !busy,
-                            ) { Text("Remove") }
+                            ) { Text(stringResource(R.string.basket_remove)) }
                         }
                     }
                 }
@@ -306,7 +308,7 @@ fun BasketScreen(viewModel: BasketViewModel, onBack: () -> Unit, onCheckout: () 
 
             Column(Modifier.padding(16.dp)) {
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("Subtotal", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.basket_subtotal), style = MaterialTheme.typography.titleMedium)
                     Text(
                         formatMoney(current.subtotal, current.currency),
                         style = MaterialTheme.typography.titleMedium,
@@ -319,7 +321,7 @@ fun BasketScreen(viewModel: BasketViewModel, onBack: () -> Unit, onCheckout: () 
                     onClick = onCheckout,
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Checkout") }
+                ) { Text(stringResource(R.string.basket_checkout)) }
             }
         }
     }
@@ -344,10 +346,10 @@ fun CheckoutScreen(viewModel: CheckoutViewModel, onBack: () -> Unit, onPlaced: (
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Checkout") },
+                title = { Text(stringResource(R.string.basket_checkout)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                     }
                 },
             )
@@ -357,14 +359,14 @@ fun CheckoutScreen(viewModel: CheckoutViewModel, onBack: () -> Unit, onPlaced: (
             Modifier.padding(padding).fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(line1, { line1 = it }, label = { Text("Address") },
+            OutlinedTextField(line1, { line1 = it }, label = { Text(stringResource(R.string.checkout_address)) },
                 singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(city, { city = it }, label = { Text("City") },
+            OutlinedTextField(city, { city = it }, label = { Text(stringResource(R.string.checkout_city)) },
                 singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(postcode, { postcode = it }, label = { Text("Postcode") },
+            OutlinedTextField(postcode, { postcode = it }, label = { Text(stringResource(R.string.checkout_postcode)) },
                 singleLine = true, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(country, { country = it.uppercase().take(2) },
-                label = { Text("Country (ISO code)") }, singleLine = true,
+                label = { Text(stringResource(R.string.checkout_country)) }, singleLine = true,
                 modifier = Modifier.fillMaxWidth())
 
             state.error?.let {
@@ -379,7 +381,7 @@ fun CheckoutScreen(viewModel: CheckoutViewModel, onBack: () -> Unit, onPlaced: (
                     line1.isNotBlank() && city.isNotBlank() && postcode.isNotBlank() && country.length == 2,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (state.submitting) "Placing your order…" else "Place order")
+                Text(if (state.submitting) stringResource(R.string.checkout_placing) else stringResource(R.string.checkout_place_order))
             }
         }
     }
@@ -400,10 +402,10 @@ fun OrdersScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Your orders") },
+                title = { Text(stringResource(R.string.orders_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                     }
                 },
             )
@@ -415,7 +417,7 @@ fun OrdersScreen(
             }
 
             orders.isEmpty() -> Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                Text("You have no orders yet.")
+                Text(stringResource(R.string.orders_empty))
             }
 
             else -> LazyColumn(
@@ -461,10 +463,10 @@ fun OrderDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(order?.orderNumber ?: "Order") },
+                title = { Text(order?.orderNumber ?: stringResource(R.string.orders_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                     }
                 },
             )
@@ -485,7 +487,7 @@ fun OrderDetailScreen(
 
             if (detail.status == "Pending" || detail.status == "AwaitingPayment") {
                 Text(
-                    "We're confirming stock and payment. This updates on its own.",
+                    stringResource(R.string.orders_settling),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -496,13 +498,13 @@ fun OrderDetailScreen(
 
             detail.lines.forEach { line ->
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("${line.quantity} × ${line.name}")
+                    Text(stringResource(R.string.basket_line, line.quantity.toString(), line.name))
                     Text(formatMoney(line.lineTotal, detail.currency))
                 }
             }
 
             Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                Text("Total", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.checkout_total), style = MaterialTheme.typography.titleMedium)
                 Text(formatMoney(detail.total, detail.currency), style = MaterialTheme.typography.titleMedium)
             }
 
@@ -514,7 +516,7 @@ fun OrderDetailScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Cancel order") }
+                ) { Text(stringResource(R.string.orders_cancel)) }
             }
         }
     }
@@ -540,10 +542,10 @@ fun SignInScreen(viewModel: AuthViewModel, onSignedIn: () -> Unit, onBack: () ->
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (registering) "Create an account" else "Sign in") },
+                title = { Text(if (registering) stringResource(R.string.auth_create_account_title) else stringResource(R.string.auth_sign_in)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                     }
                 },
             )
@@ -554,9 +556,9 @@ fun SignInScreen(viewModel: AuthViewModel, onSignedIn: () -> Unit, onBack: () ->
                 Modifier.padding(padding).fillMaxSize().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Signed in as ${profile!!.displayName}", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.account_signed_in_as, profile!!.displayName), style = MaterialTheme.typography.titleMedium)
                 Button(onClick = viewModel::signOut, modifier = Modifier.fillMaxWidth()) {
-                    Text("Sign out")
+                    Text(stringResource(R.string.auth_sign_out))
                 }
             }
             return@Scaffold
@@ -567,18 +569,18 @@ fun SignInScreen(viewModel: AuthViewModel, onSignedIn: () -> Unit, onBack: () ->
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (registering) {
-                OutlinedTextField(displayName, { displayName = it }, label = { Text("Name") },
+                OutlinedTextField(displayName, { displayName = it }, label = { Text(stringResource(R.string.auth_name)) },
                     singleLine = true, modifier = Modifier.fillMaxWidth())
             }
 
             OutlinedTextField(
-                email, { email = it }, label = { Text("Email") }, singleLine = true,
+                email, { email = it }, label = { Text(stringResource(R.string.auth_email)) }, singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
             )
 
             OutlinedTextField(
-                password, { password = it }, label = { Text("Password") }, singleLine = true,
+                password, { password = it }, label = { Text(stringResource(R.string.auth_password)) }, singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
@@ -586,7 +588,7 @@ fun SignInScreen(viewModel: AuthViewModel, onSignedIn: () -> Unit, onBack: () ->
 
             if (registering) {
                 Text(
-                    "At least 12 characters, including a letter and a digit.",
+                    stringResource(R.string.auth_password_hint),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -604,11 +606,11 @@ fun SignInScreen(viewModel: AuthViewModel, onSignedIn: () -> Unit, onBack: () ->
                     (!registering || displayName.isNotBlank()),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (state.busy) "Please wait…" else if (registering) "Create account" else "Sign in")
+                Text(if (state.busy) stringResource(R.string.common_please_wait) else if (registering) stringResource(R.string.auth_create_account) else stringResource(R.string.auth_sign_in))
             }
 
             TextButton(onClick = { registering = !registering }, modifier = Modifier.fillMaxWidth()) {
-                Text(if (registering) "I already have an account" else "Create an account")
+                Text(if (registering) stringResource(R.string.auth_have_account) else stringResource(R.string.auth_create_account_title))
             }
         }
     }
