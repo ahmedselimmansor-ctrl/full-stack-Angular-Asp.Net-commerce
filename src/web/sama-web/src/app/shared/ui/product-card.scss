@@ -1,0 +1,85 @@
+:host { display: block; block-size: 100%; }
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--sama-radius);
+  overflow: hidden;
+  transition: border-color 180ms var(--sama-ease), transform 180ms var(--sama-ease),
+              box-shadow 180ms var(--sama-ease);
+}
+
+.tile:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-3px);
+  box-shadow: var(--sama-shadow);
+}
+
+.tile__media {
+  display: block;
+  aspect-ratio: 4 / 5;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.tile__media app-product-image { transition: transform 400ms var(--sama-ease); }
+.tile:hover .tile__media app-product-image { transform: scale(1.04); }
+
+.tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem 0.4rem;
+  flex: 1 0 auto;
+}
+
+.tile__brand {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+:host-context([dir='rtl']) .tile__brand { letter-spacing: 0; text-transform: none; font-size: 0.8rem; }
+
+.tile__name {
+  font-family: var(--sama-body);
+  font-size: 0.98rem;
+  font-weight: 500;
+  font-stretch: normal;
+  letter-spacing: 0;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.tile__name a { text-decoration: none; }
+
+/* The whole tile is clickable, but only the name is a real link, so the target
+   stays announced once instead of twice to a screen reader. */
+.tile__name a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.tile { position: relative; }
+
+.tile__price {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.tile__add {
+  position: relative;
+  z-index: 1;
+  margin: 0.6rem 1rem 1rem;
+  align-self: flex-start;
+}

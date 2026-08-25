@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '../../core/app-config';
 import { AuthService } from '../../core/auth.service';
+import { TranslatePipe } from '../../core/i18n';
 import { HasPermissionDirective } from '../../core/has-permission.directive';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import { NotificationService } from '../../core/notification.service';
@@ -12,14 +13,14 @@ import { PageHeader } from '../../shared/ui/page-header';
 
 @Component({
   selector: 'app-account',
-  imports: [FormsModule, RouterLink, PageHeader, HasPermissionDirective],
+  imports: [FormsModule, RouterLink, PageHeader, HasPermissionDirective, TranslatePipe],
   template: `
-    <div class="sama-page narrow">
+    <div class="page narrow">
       <app-page-header title="Your account" [description]="auth.currentUser()?.email ?? ''" />
 
       @if (auth.currentUser(); as profile) {
-        <section class="sama-card">
-          <h2>Profile</h2>
+        <section class="card">
+          <h2>{{ 'account.profile' | t }}</h2>
           <dl class="details">
             <dt>Name</dt><dd>{{ profile.displayName }}</dd>
             <dt>Email</dt><dd>{{ profile.email }}</dd>
@@ -33,71 +34,71 @@ import { PageHeader } from '../../shared/ui/page-header';
           </dl>
 
           <div class="links">
-            <a class="sama-button sama-button--ghost" routerLink="/orders">Your orders</a>
-            <a *samaHasPermission="adminPermissions" class="sama-button sama-button--ghost" routerLink="/admin">
+            <a class="btn btn--ghost" routerLink="/orders">Your orders</a>
+            <a *samaHasPermission="adminPermissions" class="btn btn--ghost" routerLink="/admin">
               Back office
             </a>
           </div>
         </section>
 
-        <section class="sama-card">
-          <h2>Change password</h2>
-          <p class="sama-muted">
+        <section class="card">
+          <h2>{{ 'account.changePassword' | t }}</h2>
+          <p class="muted">
             Changing your password signs you out on every other device, including this one.
           </p>
 
           <form (submit)="changePassword($event)" novalidate>
-            <label class="sama-field">
-              <span>Current password</span>
+            <label class="field">
+              <span>{{ 'account.currentPassword' | t }}</span>
               <input type="password" name="current" [(ngModel)]="currentPassword"
                      autocomplete="current-password" [disabled]="busy()" required />
-              @if (fieldError('CurrentPassword'); as m) { <span class="sama-error">{{ m }}</span> }
+              @if (fieldError('CurrentPassword'); as m) { <span class="error-text">{{ m }}</span> }
             </label>
 
-            <label class="sama-field">
-              <span>New password</span>
+            <label class="field">
+              <span>{{ 'account.newPassword' | t }}</span>
               <input type="password" name="next" [(ngModel)]="newPassword"
                      autocomplete="new-password" [disabled]="busy()" required />
-              <span class="hint sama-muted">At least 12 characters, including a letter and a digit.</span>
-              @if (fieldError('NewPassword'); as m) { <span class="sama-error">{{ m }}</span> }
+              <span class="hint muted">At least 12 characters, including a letter and a digit.</span>
+              @if (fieldError('NewPassword'); as m) { <span class="error-text">{{ m }}</span> }
             </label>
 
-            @if (error()) { <p class="sama-error" role="alert">{{ error() }}</p> }
+            @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
-            <button type="submit" class="sama-button" [disabled]="busy()">
+            <button type="submit" class="btn" [disabled]="busy()">
               {{ busy() ? 'Updating…' : 'Change password' }}
             </button>
           </form>
         </section>
 
-        <section class="sama-card">
-          <h2>Sessions</h2>
-          <p class="sama-muted">
+        <section class="card">
+          <h2>{{ 'account.sessions' | t }}</h2>
+          <p class="muted">
             Signing out everywhere revokes every refresh token and rotates your security stamp,
             so tokens already issued stop working immediately rather than at their next expiry.
           </p>
-          <button type="button" class="sama-button sama-button--danger" [disabled]="busy()"
+          <button type="button" class="btn btn--danger" [disabled]="busy()"
                   (click)="signOutEverywhere()">
             Sign out on all devices
           </button>
         </section>
       } @else {
-        <div class="sama-card">
-          <p class="sama-muted">Your profile could not be loaded.</p>
+        <div class="card">
+          <p class="muted">Your profile could not be loaded.</p>
         </div>
       }
     </div>
   `,
   styles: `
     .narrow { max-width: 640px; }
-    .sama-card { margin-bottom: 1.25rem; }
-    .sama-card h2 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+    .card { margin-bottom: 1.25rem; }
+    .card h2 { font-size: 1.05rem; margin-bottom: 0.5rem; }
     .details { display: grid; grid-template-columns: 150px 1fr; gap: 0.4rem 1rem; margin: 0 0 1.25rem; }
-    .details dt { color: var(--sama-ink-soft); font-size: 0.88rem; }
+    .details dt { color: var(--text-soft); font-size: 0.88rem; }
     .details dd { margin: 0; }
     .tag {
       display: inline-block; padding: 0.1rem 0.5rem; margin-right: 0.3rem;
-      border-radius: 999px; background: var(--sama-accent-soft); color: var(--sama-accent);
+      border-radius: 999px; background: var(--accent-wash); color: var(--accent);
       font-size: 0.76rem; font-weight: 600;
     }
     .links { display: flex; gap: 0.5rem; flex-wrap: wrap; }

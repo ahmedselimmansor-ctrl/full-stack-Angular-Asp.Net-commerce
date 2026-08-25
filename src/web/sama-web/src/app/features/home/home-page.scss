@@ -1,0 +1,262 @@
+/* ---- Hero -------------------------------------------------------------- */
+.hero { position: relative; }
+
+.hero__field {
+  background: var(--sama-field);
+  color: var(--on-field);
+  /* Deep enough that the triptych can hang off the bottom edge without the
+     masthead feeling cramped against it. */
+  padding-block: clamp(3rem, 8vw, 6rem) clamp(6rem, 12vw, 9rem);
+}
+
+.hero__inner { text-align: center; }
+
+.hero__eyebrow {
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-field-soft);
+  margin: 0 0 1.25rem;
+}
+
+:host-context([dir='rtl']) .hero__eyebrow { letter-spacing: 0; text-transform: none; font-size: 0.86rem; }
+
+/* ---- The dual-script masthead ------------------------------------------
+   Both scripts are set at display size and sit on one baseline. The active
+   language is the wordmark; the other is a glaze-coloured echo behind it. This
+   is the page's one loud gesture, so everything around it stays quiet. */
+.mark {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: clamp(0.6rem, 2vw, 1.4rem);
+  margin: 0 0 1.25rem;
+  line-height: 1;
+}
+
+.mark__primary {
+  font-family: var(--sama-display);
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: clamp(3.5rem, 2rem + 8vw, 8rem);
+  letter-spacing: -0.045em;
+  color: var(--on-field);
+}
+
+.mark__ghost {
+  font-family: var(--sama-display-ar);
+  font-weight: 500;
+  font-size: clamp(1.75rem, 1rem + 4vw, 4rem);
+  color: var(--sama-glaze-bright);
+  opacity: 0.5;
+}
+
+/* Arabic leads: the Kufic mark takes the display size and Latin becomes the echo. */
+:host-context([dir='rtl']) .mark__primary {
+  font-family: var(--sama-display-ar);
+  font-stretch: normal;
+  letter-spacing: 0;
+  font-size: clamp(3rem, 1.8rem + 7vw, 7rem);
+}
+
+:host-context([dir='rtl']) .mark__ghost {
+  font-family: var(--sama-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: clamp(1.6rem, 1rem + 3.6vw, 3.6rem);
+}
+
+.hero__lede {
+  color: var(--on-field-soft);
+  font-size: clamp(1rem, 0.95rem + 0.4vw, 1.2rem);
+  max-inline-size: 54ch;
+  margin-inline: auto;
+  margin-block-end: 2rem;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+/* ---- Department triptych ----------------------------------------------- */
+.triptych {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  /* Pulls the row up into the field so the doors overlap the brand block. */
+  margin-block-start: clamp(-7rem, -10vw, -5rem);
+  position: relative;
+  z-index: 1;
+}
+
+.door {
+  position: relative;
+  display: block;
+  min-block-size: clamp(260px, 34vw, 400px);
+  border-radius: var(--sama-radius);
+  overflow: hidden;
+  text-decoration: none;
+  color: #F4F8F8;
+  box-shadow: var(--sama-shadow-lg);
+  transition: transform 320ms var(--sama-ease);
+}
+
+.door:hover { transform: translateY(-6px); }
+
+.door__image {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  transition: transform 700ms var(--sama-ease);
+}
+
+.door:hover .door__image { transform: scale(1.06); }
+
+/* A single dark wash rather than a gradient stack: the photographs already carry
+   the colour, and the veil only has to make the type legible on any of them. */
+.door__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(6 18 25 / 88%) 8%, rgb(6 18 25 / 30%) 55%, rgb(6 18 25 / 12%) 100%);
+}
+
+.door__text {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: clamp(1rem, 2.5vw, 1.6rem);
+}
+
+.door__title {
+  font-family: var(--sama-display);
+  font-weight: 700;
+  font-stretch: 118%;
+  font-size: clamp(1.35rem, 1rem + 1.4vw, 1.9rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+:host-context([dir='rtl']) .door__title { font-family: var(--sama-display-ar); font-stretch: normal; letter-spacing: 0; }
+
+.door__blurb {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgb(244 248 248 / 78%);
+  max-inline-size: 32ch;
+}
+
+.door__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block-start: 0.4rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--sama-glaze-bright);
+}
+
+.door__arrow {
+  inline-size: 17px;
+  block-size: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 200ms var(--sama-ease);
+}
+
+/* The arrow points the way the language reads. */
+:host-context([dir='rtl']) .door__arrow { transform: scaleX(-1); }
+.door:hover .door__arrow { transform: translateX(3px); }
+:host-context([dir='rtl']) .door:hover .door__arrow { transform: scaleX(-1) translateX(3px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .door {
+    opacity: 0;
+    animation: door-rise 620ms var(--sama-ease) forwards;
+    animation-delay: var(--delay, 0ms);
+  }
+
+  @keyframes door-rise {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 860px) {
+  .triptych { grid-template-columns: 1fr; margin-block-start: clamp(-4rem, -8vw, -3rem); }
+  .door { min-block-size: 220px; }
+}
+
+/* ---- New arrivals rail -------------------------------------------------- */
+.rail__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1.75rem;
+}
+
+.rail__head h2 { margin: 0; }
+
+.rail__all {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.rail__all:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.rail__failed { display: grid; gap: 0.5rem; justify-items: start; }
+.rail__failed p { margin: 0; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
+  gap: clamp(0.85rem, 1.8vw, 1.35rem);
+}
+
+/* ---- How we buy --------------------------------------------------------- */
+.how {
+  background: var(--bg-alt);
+  border-block: 1px solid var(--line);
+}
+
+.how__lede { margin-block-end: 2.5rem; }
+
+.how__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+/* The rule is a divider between principles, not a numbered sequence: these three
+   are simultaneous commitments and numbering them would imply an order. */
+.how__item {
+  padding-block-start: 1.1rem;
+  border-block-start: 2px solid var(--accent);
+}
+
+.how__title {
+  font-size: 1.08rem;
+  margin: 0 0 0.4rem;
+}
+
+.how__copy {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.95rem;
+}

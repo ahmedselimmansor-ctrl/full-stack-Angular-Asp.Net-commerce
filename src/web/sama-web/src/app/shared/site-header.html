@@ -1,0 +1,192 @@
+<a class="skip-link" href="#main">{{ 'common.skipToContent' | t }}</a>
+
+<!-- The promise bar carries the three things people check before they trust a
+     shop they have not used: delivery, returns, and whether stock is real. -->
+<div class="promise" role="note">
+  <div class="promise__inner page">
+    <span>{{ 'home.hero.shipping' | t }}</span>
+    <span aria-hidden="true" class="promise__dot"></span>
+    <span>{{ 'home.hero.returns' | t }}</span>
+    <span aria-hidden="true" class="promise__dot"></span>
+    <span class="promise__last">{{ 'home.hero.stock' | t }}</span>
+  </div>
+</div>
+
+<header class="bar" [class.is-condensed]="condensed()">
+  <div class="bar__inner page">
+    <button
+      type="button"
+      class="icon-btn bar__burger"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="site-menu"
+      [attr.aria-label]="menuOpen() ? ('nav.close' | t) : ('nav.openMenu' | t)"
+      (click)="toggleMenu()"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        @if (menuOpen()) {
+          <path d="M5 5l10 10M15 5L5 15" />
+        } @else {
+          <path d="M3 6h14M3 10h14M3 14h14" />
+        }
+      </svg>
+    </button>
+
+    <!--
+      The signature: both scripts are always present. The active language reads
+      as the wordmark and the other sits behind it, ghosted. Switching language
+      trades their places and mirrors the whole page, so the bilingual promise is
+      visible in the mark itself rather than buried in a settings menu.
+    -->
+    <a class="brand" routerLink="/" (click)="closeMenu()">
+      <span class="brand__primary">{{ 'brand.name' | t }}</span>
+      <span class="brand__ghost" aria-hidden="true">{{ locale.locale() === 'ar' ? 'Sama' : 'سما' }}</span>
+    </a>
+
+    <nav class="nav" [attr.aria-label]="'nav.menu' | t">
+      @for (department of departments; track department.path) {
+        <a
+          class="nav__link"
+          [routerLink]="department.path"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ department.label | t }}
+        </a>
+      }
+    </nav>
+
+    <div class="actions">
+      <form class="search" [class.is-open]="searchOpen()" (submit)="search($event)" role="search">
+        <label class="sr-only" for="site-search">{{ 'nav.search' | t }}</label>
+        <input
+          id="site-search"
+          type="search"
+          class="search__input"
+          [placeholder]="'nav.searchPlaceholder' | t"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+        />
+        <button type="submit" class="icon-btn search__go" [attr.aria-label]="'common.search' | t">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <circle cx="8.8" cy="8.8" r="5.3" />
+            <path d="M12.7 12.7L16.5 16.5" />
+          </svg>
+        </button>
+      </form>
+
+      <button
+        type="button"
+        class="icon-btn actions__search-toggle"
+        [attr.aria-expanded]="searchOpen()"
+        [attr.aria-label]="'nav.search' | t"
+        (click)="toggleSearch()"
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="8.8" cy="8.8" r="5.3" />
+          <path d="M12.7 12.7L16.5 16.5" />
+        </svg>
+      </button>
+
+      <div class="actions__prefs">
+        <app-locale-toggle />
+        <app-theme-toggle />
+      </div>
+
+      <app-basket-badge />
+
+      @if (isAuthenticated()) {
+        <!--
+          A menu rather than a link to /account. Sign out has to be reachable from
+          every page: burying it on the account page means the only way to end a
+          session on a shared machine is to know where it is kept.
+        -->
+        <div class="account">
+          <button
+            type="button"
+            class="avatar"
+            [attr.aria-expanded]="accountOpen()"
+            aria-haspopup="menu"
+            aria-controls="account-menu"
+            [attr.aria-label]="('nav.account' | t) + ', ' + displayName()"
+            (click)="toggleAccount()"
+          >
+            {{ initials() }}
+          </button>
+
+          @if (accountOpen()) {
+            <div id="account-menu" class="account__menu" role="menu">
+              <p class="account__who">{{ displayName() }}</p>
+
+              <a class="account__item" role="menuitem" routerLink="/account" (click)="closeAccount()">
+                {{ 'nav.account' | t }}
+              </a>
+              <a class="account__item" role="menuitem" routerLink="/orders" (click)="closeAccount()">
+                {{ 'nav.orders' | t }}
+              </a>
+              <a
+                *samaHasPermission="adminPermissions"
+                class="account__item"
+                role="menuitem"
+                routerLink="/admin"
+                (click)="closeAccount()"
+              >
+                {{ 'nav.admin' | t }}
+              </a>
+
+              <hr class="account__rule" />
+
+              <button type="button" class="account__item account__item--signout" role="menuitem" (click)="signOut()">
+                {{ 'nav.signOut' | t }}
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a class="btn btn--sm actions__signin" routerLink="/sign-in">{{ 'nav.signIn' | t }}</a>
+      }
+    </div>
+  </div>
+</header>
+
+@if (accountOpen()) {
+  <div class="account__scrim" (click)="closeAccount()" aria-hidden="true"></div>
+}
+
+@if (menuOpen()) {
+  <!-- Clicking away closes the drawer. The overlay is not a control, so it is
+       hidden from assistive tech; Escape and the close button do the same job. -->
+  <div class="scrim" (click)="closeMenu()" aria-hidden="true"></div>
+}
+
+<div id="site-menu" class="drawer" [class.is-open]="menuOpen()" [attr.inert]="menuOpen() ? null : ''">
+  <nav class="drawer__nav" [attr.aria-label]="'nav.menu' | t">
+    <a class="drawer__link" routerLink="/" (click)="closeMenu()">{{ 'nav.home' | t }}</a>
+
+    @for (department of departments; track department.path) {
+      <a class="drawer__link" [routerLink]="department.path" (click)="closeMenu()">
+        {{ department.label | t }}
+      </a>
+    }
+
+    @if (isAuthenticated()) {
+      <hr class="drawer__rule" />
+      <a class="drawer__link" routerLink="/orders" (click)="closeMenu()">{{ 'nav.orders' | t }}</a>
+      <a class="drawer__link" routerLink="/account" (click)="closeMenu()">{{ 'nav.account' | t }}</a>
+      <a *samaHasPermission="adminPermissions" class="drawer__link" routerLink="/admin" (click)="closeMenu()">
+        {{ 'nav.admin' | t }}
+      </a>
+      <button type="button" class="drawer__link drawer__link--button" (click)="signOut()">
+        {{ 'nav.signOut' | t }}
+      </button>
+    } @else {
+      <hr class="drawer__rule" />
+      <a class="drawer__link" routerLink="/sign-in" (click)="closeMenu()">{{ 'nav.signIn' | t }}</a>
+      <a class="drawer__link" routerLink="/register" (click)="closeMenu()">{{ 'nav.register' | t }}</a>
+    }
+  </nav>
+
+  <div class="drawer__prefs">
+    <app-locale-toggle />
+    <app-theme-toggle />
+  </div>
+</div>

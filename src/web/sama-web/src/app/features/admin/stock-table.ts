@@ -1,24 +1,25 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/admin.service';
+import { TranslatePipe } from '../../core/i18n';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import type { Paged, StockLevel } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { EmptyState } from '../../shared/ui/empty-state';
+import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { Skeleton } from '../../shared/ui/skeleton';
-import { StatusChip } from '../../shared/ui/status-chip';
+import { type ChipSpec, StatusChip } from '../../shared/ui/status-chip';
 
 @Component({
   selector: 'app-admin-stock',
-  imports: [FormsModule, PageHeader, Skeleton, EmptyState, StatusChip],
+  imports: [FormsModule, PageHeader, Skeleton, EmptyState, StatusChip, TranslatePipe],
   template: `
     <app-page-header
       title="Stock"
       description="Available is on hand minus what is reserved against open orders.">
       <label class="toggle">
         <input type="checkbox" [(ngModel)]="lowOnly" (change)="reload()" />
-        <span>Low stock only</span>
+        <span>{{ 'admin.stock.lowOnly' | t }}</span>
       </label>
     </app-page-header>
 
@@ -26,7 +27,7 @@ import { StatusChip } from '../../shared/ui/status-chip';
       <app-skeleton [count]="5" [height]="52" />
     } @else if ((page()?.totalCount ?? 0) === 0) {
       <app-empty-state
-        icon="⛁"
+        [icon]="EmptyIcons.stock"
         [title]="lowOnly ? 'Nothing is running low' : 'No stock records yet'"
         [description]="lowOnly
           ? 'Every line is above its reorder level.'
@@ -34,16 +35,16 @@ import { StatusChip } from '../../shared/ui/status-chip';
     } @else {
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">Stock levels by product</caption>
+          <caption class="sr-only">{{ 'admin.stock.caption' | t }}</caption>
           <thead>
             <tr>
-              <th scope="col">SKU</th>
-              <th scope="col" class="numeric">On hand</th>
-              <th scope="col" class="numeric">Reserved</th>
-              <th scope="col" class="numeric">Available</th>
-              <th scope="col" class="numeric">Reorder at</th>
+              <th scope="col">{{ 'product.sku' | t }}</th>
+              <th scope="col" class="numeric">{{ 'admin.stock.onHand' | t }}</th>
+              <th scope="col" class="numeric">{{ 'admin.stock.reserved' | t }}</th>
+              <th scope="col" class="numeric">{{ 'admin.stock.available' | t }}</th>
+              <th scope="col" class="numeric">{{ 'admin.stock.reorderAt' | t }}</th>
               <th scope="col">State</th>
-              <th scope="col"><span class="sr-only">Actions</span></th>
+              <th scope="col"><span class="sr-only">{{ 'common.actions' | t }}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -70,17 +71,17 @@ import { StatusChip } from '../../shared/ui/status-chip';
                 </td>
                 <td>
                   @if (line.belowReorderLevel) {
-                    <app-status-chip label="Low" tone="warn" />
+                    <app-status-chip [spec]="lowChip" />
                   } @else {
-                    <app-status-chip label="In stock" tone="good" />
+                    <app-status-chip [spec]="okChip" />
                   }
                 </td>
                 <td class="actions">
                   @if (editing() === line.productId) {
-                    <button type="button" class="link" (click)="save(line)" [disabled]="saving()">Save</button>
-                    <button type="button" class="link" (click)="editing.set(null)">Cancel</button>
+                    <button type="button" class="link" (click)="save(line)" [disabled]="saving()">{{ 'common.save' | t }}</button>
+                    <button type="button" class="link" (click)="editing.set(null)">{{ 'common.cancel' | t }}</button>
                   } @else {
-                    <button type="button" class="link" (click)="edit(line)">Adjust</button>
+                    <button type="button" class="link" (click)="edit(line)">{{ 'admin.stock.adjust' | t }}</button>
                   }
                 </td>
               </tr>
@@ -89,7 +90,7 @@ import { StatusChip } from '../../shared/ui/status-chip';
         </table>
       </div>
 
-      <p class="note sama-muted">
+      <p class="note muted">
         Stock cannot be set below the reserved quantity — those units are already promised to
         open orders, and the shortfall would only surface at despatch.
       </p>
@@ -100,13 +101,17 @@ import { StatusChip } from '../../shared/ui/status-chip';
     .toggle { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; }
     .inline {
       width: 80px; padding: 0.3rem 0.4rem; font: inherit; text-align: right;
-      border: 1px solid var(--sama-accent); border-radius: var(--sama-radius-sm);
-      background: var(--sama-surface); color: var(--sama-ink);
+      border: 1px solid var(--accent); border-radius: var(--sama-radius-sm);
+      background: var(--surface); color: var(--text);
     }
     .note { font-size: 0.82rem; margin-top: 1rem; }
   `,
 })
 export class AdminStockTable {
+  protected readonly EmptyIcons = EmptyIcons;
+  protected readonly lowChip: ChipSpec = { label: 'status.stock.low', tone: 'warn', translated: true };
+  protected readonly okChip: ChipSpec = { label: 'status.stock.ok', tone: 'good', translated: true };
+
   private readonly admin = inject(AdminService);
   private readonly notifications = inject(NotificationService);
 

@@ -4,10 +4,10 @@ import { RouterLink } from '@angular/router';
 import { AdminService } from '../../core/admin.service';
 import type { ManagedProduct, Paged, ProductStatus } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { MoneyPipe } from '../../shared/money.pipe';
+import { MoneyPipe, TranslatePipe } from '../../core/i18n';
 import { ProductImage } from '../../shared/product-image';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
-import { EmptyState } from '../../shared/ui/empty-state';
+import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { Skeleton } from '../../shared/ui/skeleton';
 import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
@@ -17,22 +17,23 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
   imports: [
     RouterLink, FormsModule, MoneyPipe, ProductImage,
     PageHeader, Skeleton, EmptyState, StatusChip, ConfirmDialog,
+  TranslatePipe,
   ],
   template: `
-    <app-page-header title="Products" description="Everything in the catalogue, published or not.">
-      <a class="sama-button" routerLink="new">New product</a>
+    <app-page-header [title]="'admin.products.title' | t" [description]="'admin.products.lede' | t">
+      <a class="btn" routerLink="new">{{ 'admin.products.new' | t }}</a>
     </app-page-header>
 
     <div class="filters">
-      <label class="sama-field">
-        <span>Search</span>
-        <input type="search" [(ngModel)]="query" (input)="onSearch()" placeholder="Name or SKU" />
+      <label class="field">
+        <span>{{ 'common.search' | t }}</span>
+        <input type="search" [(ngModel)]="query" (input)="onSearch()" [placeholder]="'admin.products.searchHint' | t" />
       </label>
 
-      <label class="sama-field">
-        <span>Status</span>
+      <label class="field">
+        <span>{{ 'field.status' | t }}</span>
         <select [(ngModel)]="status" (change)="reload()">
-          <option [ngValue]="null">All</option>
+          <option [ngValue]="null">{{ 'common.all' | t }}</option>
           <option value="Draft">Draft</option>
           <option value="Published">Published</option>
           <option value="Archived">Archived</option>
@@ -44,23 +45,23 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
       <app-skeleton [count]="5" [height]="64" />
     } @else if ((page()?.totalCount ?? 0) === 0) {
       <app-empty-state
-        icon="❑"
-        title="No products yet"
-        description="Create your first product to start selling.">
-        <a class="sama-button" routerLink="new">New product</a>
+        [icon]="EmptyIcons.product"
+        [title]="'admin.products.empty' | t"
+        [description]="'admin.products.emptyCopy' | t">
+        <a class="btn" routerLink="new">{{ 'admin.products.new' | t }}</a>
       </app-empty-state>
     } @else {
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">Products in the catalogue</caption>
+          <caption class="sr-only">{{ 'admin.products.caption' | t }}</caption>
           <thead>
             <tr>
-              <th scope="col" class="col-image"><span class="sr-only">Image</span></th>
-              <th scope="col">Product</th>
-              <th scope="col">SKU</th>
-              <th scope="col">Status</th>
-              <th scope="col" class="numeric">Price</th>
-              <th scope="col"><span class="sr-only">Actions</span></th>
+              <th scope="col" class="col-image"><span class="sr-only">{{ 'field.image' | t }}</span></th>
+              <th scope="col">{{ 'field.product' | t }}</th>
+              <th scope="col">{{ 'product.sku' | t }}</th>
+              <th scope="col">{{ 'field.status' | t }}</th>
+              <th scope="col" class="numeric">{{ 'field.price' | t }}</th>
+              <th scope="col"><span class="sr-only">{{ 'common.actions' | t }}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -73,19 +74,19 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
                 </td>
                 <td>
                   <a class="name" [routerLink]="[product.id]">{{ product.name }}</a>
-                  @if (product.brand) { <span class="brand sama-muted">{{ product.brand }}</span> }
+                  @if (product.brand) { <span class="brand muted">{{ product.brand }}</span> }
                 </td>
                 <td class="mono">{{ product.sku }}</td>
                 <td>
-                  <app-status-chip [label]="chip(product).label" [tone]="chip(product).tone" />
+                  <app-status-chip [spec]="chip(product)" />
                 </td>
                 <td class="numeric">{{ product.price | money: product.currency }}</td>
                 <td class="actions">
                   @if (product.status === 'Draft') {
-                    <button type="button" class="link" (click)="publish(product)">Publish</button>
+                    <button type="button" class="link" (click)="publish(product)">{{ 'common.publish' | t }}</button>
                   }
-                  <a class="link" [routerLink]="[product.id]">Edit</a>
-                  <button type="button" class="link link--danger" (click)="askToDelete(product)">Delete</button>
+                  <a class="link" [routerLink]="[product.id]">{{ 'common.edit' | t }}</a>
+                  <button type="button" class="link link--danger" (click)="askToDelete(product)">{{ 'common.delete' | t }}</button>
                 </td>
               </tr>
             }
@@ -95,20 +96,20 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
 
       @if (page()!.totalPages > 1) {
         <nav class="pager" aria-label="Pagination">
-          <button type="button" class="sama-button sama-button--ghost"
-                  [disabled]="!page()!.hasPrevious" (click)="goTo(page()!.page - 1)">Previous</button>
-          <span class="sama-muted">Page {{ page()!.page }} of {{ page()!.totalPages }}</span>
-          <button type="button" class="sama-button sama-button--ghost"
-                  [disabled]="!page()!.hasNext" (click)="goTo(page()!.page + 1)">Next</button>
+          <button type="button" class="btn btn--ghost"
+                  [disabled]="!page()!.hasPrevious" (click)="goTo(page()!.page - 1)">{{ 'common.previous' | t }}</button>
+          <span class="muted">Page {{ page()!.page }} of {{ page()!.totalPages }}</span>
+          <button type="button" class="btn btn--ghost"
+                  [disabled]="!page()!.hasNext" (click)="goTo(page()!.page + 1)">{{ 'common.next' | t }}</button>
         </nav>
       }
     }
 
     <app-confirm-dialog
       [open]="pendingDelete() !== null"
-      title="Delete this product?"
+      [title]="'admin.products.deleteConfirm' | t"
       [message]="deleteMessage()"
-      confirmLabel="Delete"
+      [confirmLabel]="'common.delete' | t"
       [destructive]="true"
       (confirmed)="confirmDelete()"
       (cancelled)="pendingDelete.set(null)" />
@@ -116,6 +117,7 @@ import { StatusChip, productStatusChip } from '../../shared/ui/status-chip';
   styleUrl: './admin-tables.scss',
 })
 export class AdminProductTable {
+  protected readonly EmptyIcons = EmptyIcons;
   private readonly admin = inject(AdminService);
   private readonly notifications = inject(NotificationService);
 

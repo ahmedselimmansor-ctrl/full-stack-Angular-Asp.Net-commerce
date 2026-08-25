@@ -6,11 +6,12 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import { TitleStrategy, provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 import { AuthService } from './core/auth.service';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { SamaTitleStrategy } from './core/title.strategy';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -31,6 +32,9 @@ export const appConfig: ApplicationConfig = {
       // interceptor successfully renews and replays never surfaces as a user-visible error.
       withInterceptors([errorInterceptor, authInterceptor]),
     ),
+
+    // Titles come from translation keys so the tab reads in the page's language.
+    { provide: TitleStrategy, useClass: SamaTitleStrategy },
 
     // Recovers a session from the refresh cookie before the first route renders, so a reload
     // does not briefly show the signed-out shell to someone who is signed in.

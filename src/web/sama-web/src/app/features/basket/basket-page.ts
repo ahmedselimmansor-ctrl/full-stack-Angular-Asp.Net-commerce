@@ -1,24 +1,25 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BasketStore } from '../../core/basket-store';
 import type { BasketLine } from '../../core/models';
-import { MoneyPipe } from '../../shared/money.pipe';
+import { LocaleService, MoneyPipe, TranslatePipe } from '../../core/i18n';
 import { ProductImage } from '../../shared/product-image';
 
 @Component({
   selector: 'app-basket',
-  imports: [RouterLink, MoneyPipe, ProductImage],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, MoneyPipe, TranslatePipe, ProductImage],
   template: `
-    <div class="sama-page">
-      <h1>Your basket</h1>
+    <div class="page">
+      <h1>{{ 'basket.title' | t }}</h1>
 
       @if (store.basket() === null) {
-        <p class="sama-muted" aria-busy="true">Loading…</p>
+        <p class="muted" aria-busy="true">{{ 'common.loading' | t }}</p>
       } @else if (store.isEmpty()) {
-        <div class="sama-card empty">
-          <h2>Nothing here yet</h2>
-          <p class="sama-muted">Browse the shop and add something you like.</p>
-          <a class="sama-button" routerLink="/">Start shopping</a>
+        <div class="card empty">
+          <h2>{{ 'basket.empty.title' | t }}</h2>
+          <p class="muted">{{ 'basket.empty.copy' | t }}</p>
+          <a class="btn" routerLink="/shop">{{ 'basket.empty.action' | t }}</a>
         </div>
       } @else {
         <div class="layout">
@@ -31,38 +32,38 @@ import { ProductImage } from '../../shared/product-image';
 
                 <div class="line__info">
                   <p class="line__name">{{ line.name }}</p>
-                  <p class="line__sku sama-muted">SKU {{ line.sku }}</p>
-                  <p class="line__unit sama-muted">{{ line.unitPrice | money: line.currency }} each</p>
+                  <p class="line__sku faint">{{ 'product.sku' | t }} <span class="mono">{{ line.sku }}</span></p>
+                  <p class="line__unit muted">{{ locale.t('basket.each', { price: locale.formatMoney(line.unitPrice, line.currency) }) }}</p>
                 </div>
 
-                <label class="line__qty sama-field">
-                  <span>Qty</span>
+                <label class="line__qty field">
+                  <span>{{ 'basket.qty' | t }}</span>
                   <select [value]="line.quantity" [disabled]="store.isBusy()"
                           (change)="changeQuantity(line, $event)">
-                    @for (n of quantities; track n) { <option [value]="n">{{ n }}</option> }
+                    @for (n of quantities; track n) { <option [value]="n">{{ locale.formatNumber(n) }}</option> }
                   </select>
                 </label>
 
                 <p class="line__total">{{ line.lineTotal | money: line.currency }}</p>
 
                 <button type="button" class="remove" [disabled]="store.isBusy()"
-                        (click)="remove(line)" [attr.aria-label]="'Remove ' + line.name">×</button>
+                        (click)="remove(line)" [attr.aria-label]="locale.t('basket.removeNamed', { name: line.name })">×</button>
               </li>
             }
           </ul>
 
-          <aside class="summary sama-card">
-            <h2>Summary</h2>
+          <aside class="summary card">
+            <h2>{{ 'basket.summary' | t }}</h2>
             <div class="summary__row">
-              <span>Items</span><span>{{ store.itemCount() }}</span>
+              <span>{{ 'basket.itemCount' | t }}</span><span class="tabular">{{ locale.formatNumber(store.itemCount()) }}</span>
             </div>
             <div class="summary__row summary__row--total">
-              <span>Subtotal</span><span>{{ store.subtotal() | money: store.currency() }}</span>
+              <span>{{ 'basket.subtotal' | t }}</span><span class="tabular">{{ store.subtotal() | money: store.currency() }}</span>
             </div>
-            <p class="sama-muted note">Shipping and tax are calculated at checkout.</p>
-            <a class="sama-button full" routerLink="/checkout">Proceed to checkout</a>
-            <button type="button" class="sama-button sama-button--ghost full"
-                    [disabled]="store.isBusy()" (click)="store.clear()">Empty basket</button>
+            <p class="muted note">{{ 'basket.shippingNote' | t }}</p>
+            <a class="btn full" routerLink="/checkout">{{ 'basket.goToCheckout' | t }}</a>
+            <button type="button" class="btn btn--ghost full"
+                    [disabled]="store.isBusy()" (click)="store.clear()">{{ 'basket.empty.action2' | t }}</button>
           </aside>
         </div>
       }
@@ -77,8 +78,8 @@ import { ProductImage } from '../../shared/product-image';
       grid-template-columns: 72px 1fr 90px auto 32px;
       gap: 1rem;
       align-items: center;
-      background: var(--sama-surface);
-      border: 1px solid var(--sama-border);
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: var(--sama-radius);
       padding: 0.85rem;
     }
@@ -91,17 +92,17 @@ import { ProductImage } from '../../shared/product-image';
     .line__qty { margin-bottom: 0; }
     .line__total { margin: 0; font-weight: 600; text-align: right; }
 
-    .remove { background: none; border: 0; cursor: pointer; font-size: 1.3rem; color: var(--sama-ink-soft); }
-    .remove:hover:not(:disabled) { color: var(--sama-danger); }
+    .remove { background: none; border: 0; cursor: pointer; font-size: 1.3rem; color: var(--text-soft); }
+    .remove:hover:not(:disabled) { color: var(--critical); }
 
     .summary { position: sticky; top: 5rem; }
     .summary__row { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.95rem; }
-    .summary__row--total { font-weight: 650; font-size: 1.05rem; border-top: 1px solid var(--sama-border); margin-top: 0.4rem; padding-top: 0.7rem; }
+    .summary__row--total { font-weight: 650; font-size: 1.05rem; border-top: 1px solid var(--line); margin-top: 0.4rem; padding-top: 0.7rem; }
     .note { font-size: 0.8rem; margin: 0.5rem 0 1rem; }
     .full { width: 100%; margin-bottom: 0.5rem; text-decoration: none; }
 
     .empty { text-align: center; padding: 3rem; }
-    .empty .sama-button { margin-top: 1rem; }
+    .empty .btn { margin-top: 1rem; }
 
     @media (max-width: 860px) {
       .layout { grid-template-columns: 1fr; }
@@ -116,6 +117,7 @@ import { ProductImage } from '../../shared/product-image';
   `,
 })
 export class BasketPage {
+  protected readonly locale = inject(LocaleService);
   protected readonly store = inject(BasketStore);
   protected readonly quantities = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
 

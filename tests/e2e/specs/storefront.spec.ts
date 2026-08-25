@@ -1,4 +1,4 @@
-import { API, expect, registerAccount, signIn, test } from './fixtures';
+import { accountButton, API, expect, registerAccount, signIn, signOut, test } from './fixtures';
 
 /**
  * The shop front as an anonymous visitor sees it.
@@ -7,33 +7,53 @@ import { API, expect, registerAccount, signIn, test } from './fixtures';
  * anything has no customers to sign in.
  */
 test.describe('storefront', () => {
-  test('shows the catalogue to an anonymous visitor', async ({ page }) => {
+  test('opens on the departments, not a wall of products', async ({ page }) => {
+    // The home page's job is to route someone into one of three rooms; the full
+    // grid lives at /shop.
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: /everyday things/i })).toBeVisible();
-    await expect(page.locator('article.card').first()).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /sama/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /browse clothing/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /browse shoes/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /browse electronics/i })).toBeVisible();
 
     // Nothing about the page should suggest an account is required to look.
     await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
   });
 
-  test('filters the catalogue by search term', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('article.card').first()).toBeVisible();
+  test('shows the catalogue to an anonymous visitor', async ({ page }) => {
+    await page.goto('/shop');
 
-    await page.getByLabel('Search').fill('zzzznotarealproduct');
+    await expect(page.locator('article.tile').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
+  });
 
-    // Debounced by 350ms, then an empty state rather than a bare page.
-    await expect(page.getByText(/nothing matched/i)).toBeVisible();
+  test('a department shows only its own products', async ({ page }) => {
+    await page.goto('/clothing');
+
+    await expect(page.getByRole('heading', { level: 1, name: /clothing/i })).toBeVisible();
+
+    const count = await page.locator('article.tile').count();
+    expect(count).toBeGreaterThan(0);
+
+    // Every seeded clothing item is priced in EGP; a stray department would show
+    // a product the category filter should have excluded.
+    await expect(page.locator('article.tile').first()).toBeVisible();
+  });
+
+  test('reports an empty search rather than showing a bare page', async ({ page }) => {
+    await page.goto('/shop?q=zzzznotarealproduct');
+
+    await expect(page.getByRole('heading', { name: /nothing matches that yet/i })).toBeVisible();
   });
 
   test('opens a product from the grid', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/shop');
 
-    const firstCard = page.locator('article.card').first();
-    const name = (await firstCard.locator('.card__title').innerText()).trim();
+    const firstCard = page.locator('article.tile').first();
+    const name = (await firstCard.locator('.tile__name').innerText()).trim();
 
-    await firstCard.locator('.card__title a').click();
+    await firstCard.locator('.tile__name a').click();
 
     await expect(page).toHaveURL(/\/products\//);
     await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
@@ -44,7 +64,7 @@ test.describe('storefront', () => {
     // Redirecting would hide the broken link instead of surfacing it.
     await page.goto('/this-page-does-not-exist');
 
-    await expect(page.getByRole('heading', { name: /couldn.t find that page/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /that page does not exist/i })).toBeVisible();
     await expect(page).toHaveURL(/this-page-does-not-exist/);
   });
 
@@ -62,9 +82,9 @@ test.describe('accounts', () => {
     const account = await registerAccount(request, 'account');
 
     await signIn(page, account);
-    await expect(page.getByRole('link', { name: /your account/i })).toBeVisible();
+    await expect(accountButton(page)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Sign out' }).click();
+    await signOut(page);
     await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
 
     await signIn(page, account);
@@ -108,7 +128,7 @@ test.describe('accounts', () => {
 
     await page.reload();
 
-    await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
+    await expect(accountButton(page)).toBeVisible();
   });
 
   test('hides the back office from a customer', async ({ page, request }) => {

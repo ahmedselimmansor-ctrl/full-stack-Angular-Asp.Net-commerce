@@ -55,8 +55,26 @@ export async function signIn(page: Page, account: Account): Promise<void> {
   await page.getByLabel('Password').fill(account.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
 
-  // The header's sign-out control only appears once the session is established.
-  await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
+  // The account button carries the signed-in person's initials, so it only appears
+  // once the session is established.
+  await expect(accountButton(page)).toBeVisible();
+}
+
+/** The header's account control, which opens the menu holding Sign out. */
+export function accountButton(page: Page) {
+  return page.getByRole('button', { name: /^Account,/ });
+}
+
+/**
+ * Signs out through the header menu.
+ *
+ * Sign out lives behind the account menu rather than sitting in the bar, so the
+ * menu has to be opened first — the same two steps a customer takes.
+ */
+export async function signOut(page: Page): Promise<void> {
+  await accountButton(page).click();
+  await page.getByRole('menuitem', { name: 'Sign out' }).click();
+  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
 }
 
 /**

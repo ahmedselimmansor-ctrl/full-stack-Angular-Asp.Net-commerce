@@ -2,15 +2,16 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/admin.service';
+import { TranslatePipe } from '../../core/i18n';
 import { AuthService } from '../../core/auth.service';
 import { HasPermissionDirective } from '../../core/has-permission.directive';
 import type { Paged, UserSummary } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
-import { EmptyState } from '../../shared/ui/empty-state';
+import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { Skeleton } from '../../shared/ui/skeleton';
-import { StatusChip } from '../../shared/ui/status-chip';
+import { type ChipSpec, StatusChip } from '../../shared/ui/status-chip';
 
 /** The roles the API recognises. Kept in step with SamaRoles on the server. */
 const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'administrator'] as const;
@@ -20,6 +21,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
   imports: [
     FormsModule, DatePipe, PageHeader, Skeleton, EmptyState, StatusChip, ConfirmDialog,
     HasPermissionDirective,
+  TranslatePipe,
   ],
   template: `
     <app-page-header
@@ -27,27 +29,27 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
       description="Accounts on this storefront. Roles are bundles of permissions." />
 
     <div class="filters">
-      <label class="sama-field">
-        <span>Search</span>
-        <input type="search" [(ngModel)]="search" (input)="onSearch()" placeholder="Name or email" />
+      <label class="field">
+        <span>{{ 'common.search' | t }}</span>
+        <input type="search" [(ngModel)]="search" (input)="onSearch()" [placeholder]="'admin.users.searchHint' | t" />
       </label>
     </div>
 
     @if (loading()) {
       <app-skeleton [count]="5" [height]="60" />
     } @else if ((page()?.totalCount ?? 0) === 0) {
-      <app-empty-state icon="☖" title="No users found" description="Try a different search term." />
+      <app-empty-state [icon]="EmptyIcons.user" [title]="'admin.users.empty' | t" [description]="'admin.users.emptyCopy' | t" />
     } @else {
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">Registered accounts</caption>
+          <caption class="sr-only">{{ 'admin.users.lede' | t }}</caption>
           <thead>
             <tr>
-              <th scope="col">Person</th>
-              <th scope="col">Roles</th>
-              <th scope="col">Last signed in</th>
+              <th scope="col">{{ 'admin.users.person' | t }}</th>
+              <th scope="col">{{ 'admin.users.roles' | t }}</th>
+              <th scope="col">{{ 'admin.users.lastSignIn' | t }}</th>
               <th scope="col">State</th>
-              <th scope="col"><span class="sr-only">Actions</span></th>
+              <th scope="col"><span class="sr-only">{{ 'common.actions' | t }}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -55,7 +57,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
               <tr>
                 <td>
                   <span class="name">{{ user.displayName }}</span>
-                  <span class="email sama-muted">{{ user.email }}</span>
+                  <span class="email muted">{{ user.email }}</span>
                 </td>
                 <td>
                   <div class="roles">
@@ -65,15 +67,15 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
                         {{ label(role) }} <span aria-hidden="true">×</span>
                       </button>
                     }
-                    @if (user.roles.length === 0) { <span class="sama-muted">—</span> }
+                    @if (user.roles.length === 0) { <span class="muted">—</span> }
                   </div>
                 </td>
                 <td>{{ user.lastLoginAt ? (user.lastLoginAt | date: 'mediumDate') : 'Never' }}</td>
                 <td>
                   @if (user.isActive) {
-                    <app-status-chip label="Active" tone="good" />
+                    <app-status-chip [spec]="activeChip" />
                   } @else {
-                    <app-status-chip label="Deactivated" tone="bad" />
+                    <app-status-chip [spec]="deactivatedChip" />
                   }
                 </td>
                 <td class="actions">
@@ -89,7 +91,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
 
                   @if (user.isActive && user.id !== auth.currentUser()?.id) {
                     <button *samaHasPermission="writePermission" type="button"
-                            class="link link--danger" (click)="askToDeactivate(user)">Deactivate</button>
+                            class="link link--danger" (click)="askToDeactivate(user)">{{ 'admin.users.deactivate' | t }}</button>
                   }
                 </td>
               </tr>
@@ -98,7 +100,7 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
         </table>
       </div>
 
-      <p class="note sama-muted">
+      <p class="note muted">
         A role change rotates the account's security stamp, which invalidates every token it
         currently holds — so the new permissions apply immediately rather than at the next sign-in.
       </p>
@@ -121,20 +123,24 @@ const ROLES = ['customer', 'support', 'catalog_manager', 'order_manager', 'admin
     .role {
       display: inline-flex; align-items: center; gap: 0.3rem;
       padding: 0.15rem 0.5rem; border-radius: 999px;
-      border: 1px solid var(--sama-border); background: var(--sama-surface-alt);
-      font: inherit; font-size: 0.76rem; cursor: pointer; color: var(--sama-ink-soft);
+      border: 1px solid var(--line); background: var(--surface-2);
+      font: inherit; font-size: 0.76rem; cursor: pointer; color: var(--text-soft);
     }
-    .role:hover { border-color: var(--sama-danger); color: var(--sama-danger); }
+    .role:hover { border-color: var(--critical); color: var(--critical); }
     .grant { display: inline-block; }
     .grant select {
       font: inherit; font-size: 0.82rem; padding: 0.25rem 0.4rem;
-      border: 1px solid var(--sama-border); border-radius: var(--sama-radius-sm);
-      background: var(--sama-surface); color: var(--sama-ink);
+      border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
+      background: var(--surface); color: var(--text);
     }
     .note { font-size: 0.82rem; margin-top: 1rem; }
   `,
 })
 export class AdminUserTable {
+  protected readonly EmptyIcons = EmptyIcons;
+  protected readonly activeChip: ChipSpec = { label: 'status.user.active', tone: 'good', translated: true };
+  protected readonly deactivatedChip: ChipSpec = { label: 'status.user.deactivated', tone: 'bad', translated: true };
+
   private readonly admin = inject(AdminService);
   private readonly notifications = inject(NotificationService);
   protected readonly auth = inject(AuthService);

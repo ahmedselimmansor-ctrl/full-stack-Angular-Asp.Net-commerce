@@ -23,13 +23,22 @@ test.describe('back office', () => {
 
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
 
-    // Scoped to the tile: the sidebar also has a "Products" link, and an unscoped text match
-    // resolves to both.
-    const tile = page.locator('.tile').filter({ hasText: 'Products' }).first();
-    await expect(tile).toBeVisible();
+    // Scoped to the metric: the sidebar also carries an "Orders" link, and an
+    // unscoped text match resolves to both.
+    const orders = page.locator('.metric').filter({ hasText: 'Orders' }).first();
+    await expect(orders).toBeVisible();
 
     // A real figure, not a placeholder.
-    await expect(tile.locator('.tile__value')).toHaveText(/^\d+$/);
+    await expect(orders.locator('.metric__value')).toHaveText(/^[\d,]+$/);
+
+    // The dashboard is built from the same endpoints the sections use, so the
+    // revenue figure must carry a real currency rather than a bare number.
+    const revenue = page.locator('.metric').filter({ hasText: 'Revenue' }).first();
+    await expect(revenue.locator('.metric__value')).toHaveText(/\d/);
+
+    // The trend chart plots one bar per day over the window, and labels them for
+    // screen readers in a table rather than leaving the figures locked in a picture.
+    await expect(page.locator('.chart__bar')).toHaveCount(14);
   });
 
   test('lists products in every status, including drafts', async ({ page, request }) => {
@@ -81,7 +90,9 @@ test.describe('back office', () => {
 
     // Publish it, and now it is.
     await page.goto('/admin/products');
-    await page.getByLabel('Search').fill(`E2E-${stamp}`);
+    // Scoped to the page: the site header has its own search field, so an
+    // unscoped label match resolves to both.
+    await page.getByRole('main').getByLabel('Search').fill(`E2E-${stamp}`);
     const row = page.locator('tbody tr').filter({ hasText: `E2E-${stamp}` }).first();
     await expect(row).toBeVisible();
     await row.getByRole('button', { name: 'Publish' }).click();
@@ -117,7 +128,7 @@ test.describe('back office', () => {
     await signIn(page, admin);
     await page.goto('/admin/users');
 
-    await page.getByLabel('Search').fill(subject.email);
+    await page.getByRole('main').getByLabel('Search').fill(subject.email);
     const row = page.locator('tbody tr').filter({ hasText: subject.email }).first();
     await expect(row).toBeVisible();
 

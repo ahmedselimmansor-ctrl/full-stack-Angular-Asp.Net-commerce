@@ -14,7 +14,7 @@ import { Component, input } from '@angular/core';
       <div class="header__text">
         <h1>{{ title() }}</h1>
         @if (description()) {
-          <p class="sama-muted">{{ description() }}</p>
+          <p class="muted">{{ description() }}</p>
         }
       </div>
       <div class="header__actions">

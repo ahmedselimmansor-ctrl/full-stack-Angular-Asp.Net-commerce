@@ -2,6 +2,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminService } from '../../core/admin.service';
+import { TranslatePipe } from '../../core/i18n';
 import { CatalogService } from '../../core/api.service';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import type { CategoryNode, ProductImage as ProductImageModel } from '../../core/models';
@@ -14,75 +15,75 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
 
 @Component({
   selector: 'app-admin-product-form',
-  imports: [FormsModule, RouterLink, PageHeader, Skeleton],
+  imports: [FormsModule, RouterLink, PageHeader, Skeleton, TranslatePipe],
   template: `
     <app-page-header
       [title]="isNew() ? 'New product' : 'Edit product'"
       [description]="isNew() ? 'Products are created as drafts and are not visible until published.' : ''">
-      <a class="sama-button sama-button--ghost" routerLink="/admin/products">Cancel</a>
+      <a class="btn btn--ghost" routerLink="/admin/products">{{ 'common.cancel' | t }}</a>
     </app-page-header>
 
     @if (loading()) {
       <app-skeleton [count]="4" [height]="72" />
     } @else {
-      <form class="sama-card form" (submit)="save($event)" novalidate>
+      <form class="card form" (submit)="save($event)" novalidate>
         <div class="row">
-          <label class="sama-field">
-            <span>SKU</span>
+          <label class="field">
+            <span>{{ 'product.sku' | t }}</span>
             <input name="sku" [(ngModel)]="sku" [disabled]="!isNew() || saving()" required />
             <!-- The SKU is the merchant's own identifier and is referenced by orders and
                  stock, so it is fixed once the product exists. -->
-            @if (!isNew()) { <span class="hint sama-muted">A SKU cannot be changed after creation.</span> }
-            @if (fieldError('Sku'); as m) { <span class="sama-error">{{ m }}</span> }
+            @if (!isNew()) { <span class="hint muted">A SKU cannot be changed after creation.</span> }
+            @if (fieldError('Sku'); as m) { <span class="error-text">{{ m }}</span> }
           </label>
 
-          <label class="sama-field">
-            <span>Name</span>
+          <label class="field">
+            <span>{{ 'field.name' | t }}</span>
             <input name="name" [(ngModel)]="name" (blur)="suggestSlug()" [disabled]="saving()" required />
-            @if (fieldError('Name'); as m) { <span class="sama-error">{{ m }}</span> }
+            @if (fieldError('Name'); as m) { <span class="error-text">{{ m }}</span> }
           </label>
         </div>
 
-        <label class="sama-field">
+        <label class="field">
           <span>URL slug</span>
           <input name="slug" [(ngModel)]="slug" [disabled]="saving()" required />
-          <span class="hint sama-muted">Appears in the product's address: /products/{{ slug || 'your-slug' }}</span>
-          @if (fieldError('Slug'); as m) { <span class="sama-error">{{ m }}</span> }
+          <span class="hint muted">Appears in the product's address: /products/{{ slug || 'your-slug' }}</span>
+          @if (fieldError('Slug'); as m) { <span class="error-text">{{ m }}</span> }
         </label>
 
-        <label class="sama-field">
-          <span>Description</span>
+        <label class="field">
+          <span>{{ 'field.description' | t }}</span>
           <textarea name="description" rows="5" [(ngModel)]="description" [disabled]="saving()" required></textarea>
-          @if (fieldError('Description'); as m) { <span class="sama-error">{{ m }}</span> }
+          @if (fieldError('Description'); as m) { <span class="error-text">{{ m }}</span> }
         </label>
 
         <div class="row">
-          <label class="sama-field">
-            <span>Category</span>
+          <label class="field">
+            <span>{{ 'field.category' | t }}</span>
             <select name="categoryId" [(ngModel)]="categoryId" [disabled]="saving()" required>
-              <option [ngValue]="''" disabled>Choose a category</option>
+              <option [ngValue]="''" disabled>{{ 'field.chooseCategory' | t }}</option>
               @for (category of flatCategories(); track category.id) {
                 <option [ngValue]="category.id">{{ category.label }}</option>
               }
             </select>
-            @if (fieldError('CategoryId'); as m) { <span class="sama-error">{{ m }}</span> }
+            @if (fieldError('CategoryId'); as m) { <span class="error-text">{{ m }}</span> }
           </label>
 
-          <label class="sama-field">
-            <span>Brand</span>
+          <label class="field">
+            <span>{{ 'field.brand' | t }}</span>
             <input name="brand" [(ngModel)]="brand" [disabled]="saving()" />
           </label>
         </div>
 
         <div class="row">
-          <label class="sama-field">
-            <span>Price</span>
+          <label class="field">
+            <span>{{ 'field.price' | t }}</span>
             <input name="price" type="number" step="0.01" min="0" [(ngModel)]="price" [disabled]="saving()" required />
-            @if (fieldError('Price'); as m) { <span class="sama-error">{{ m }}</span> }
+            @if (fieldError('Price'); as m) { <span class="error-text">{{ m }}</span> }
           </label>
 
-          <label class="sama-field">
-            <span>Currency</span>
+          <label class="field">
+            <span>{{ 'field.currency' | t }}</span>
             <select name="currency" [(ngModel)]="currency" [disabled]="saving()">
               @for (code of currencies; track code) { <option [value]="code">{{ code }}</option> }
             </select>
@@ -90,8 +91,8 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
         </div>
 
         <fieldset class="images">
-          <legend>Images</legend>
-          <p class="hint sama-muted">
+          <legend>{{ 'field.images' | t }}</legend>
+          <p class="hint muted">
             Paths in the media bucket, served through the CDN. A product needs at least one
             image before it can be published.
           </p>
@@ -101,25 +102,25 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
               <input [value]="image.url" (input)="updateImageUrl(i, $event)"
                      placeholder="/media/example.jpg" [disabled]="saving()" />
               <input [value]="image.altText ?? ''" (input)="updateImageAlt(i, $event)"
-                     placeholder="Alt text, for screen readers" [disabled]="saving()" />
-              <button type="button" class="sama-button sama-button--ghost"
+                     [placeholder]="'field.altText' | t" [disabled]="saving()" />
+              <button type="button" class="btn btn--ghost"
                       (click)="removeImage(i)" [disabled]="saving()"
-                      [attr.aria-label]="'Remove image ' + (i + 1)">Remove</button>
+                      [attr.aria-label]="'Remove image ' + (i + 1)">{{ 'common.remove' | t }}</button>
             </div>
           }
 
-          <button type="button" class="sama-button sama-button--ghost" (click)="addImage()" [disabled]="saving()">
+          <button type="button" class="btn btn--ghost" (click)="addImage()" [disabled]="saving()">
             Add an image
           </button>
         </fieldset>
 
-        @if (error()) { <p class="sama-error" role="alert">{{ error() }}</p> }
+        @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
         <div class="form__actions">
-          <button type="submit" class="sama-button" [disabled]="saving()">
+          <button type="submit" class="btn" [disabled]="saving()">
             {{ saving() ? 'Saving…' : isNew() ? 'Create product' : 'Save changes' }}
           </button>
-          <a class="sama-button sama-button--ghost" routerLink="/admin/products">Cancel</a>
+          <a class="btn btn--ghost" routerLink="/admin/products">{{ 'common.cancel' | t }}</a>
         </div>
       </form>
     }
@@ -130,11 +131,11 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
     .hint { display: block; font-size: 0.78rem; margin-top: 0.25rem; }
     textarea {
       width: 100%; padding: 0.6rem 0.7rem; font: inherit;
-      border: 1px solid var(--sama-border); border-radius: var(--sama-radius-sm);
-      background: var(--sama-surface); color: var(--sama-ink); resize: vertical;
+      border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
+      background: var(--surface); color: var(--text); resize: vertical;
     }
     .images {
-      border: 1px solid var(--sama-border);
+      border: 1px solid var(--line);
       border-radius: var(--sama-radius-sm);
       padding: 1rem;
       margin: 0.5rem 0 1rem;
@@ -143,8 +144,8 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'QAR', 'JOD', 'KWD
     .image-row { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 0.5rem; margin-bottom: 0.5rem; }
     .image-row input {
       padding: 0.5rem 0.6rem; font: inherit; font-size: 0.9rem;
-      border: 1px solid var(--sama-border); border-radius: var(--sama-radius-sm);
-      background: var(--sama-surface); color: var(--sama-ink);
+      border: 1px solid var(--line); border-radius: var(--sama-radius-sm);
+      background: var(--surface); color: var(--text);
     }
     .form__actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
     .form__actions a { text-decoration: none; }

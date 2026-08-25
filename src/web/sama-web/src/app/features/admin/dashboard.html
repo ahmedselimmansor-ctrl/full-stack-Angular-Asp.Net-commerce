@@ -1,0 +1,126 @@
+<header class="head">
+  <div>
+    <p class="eyebrow">{{ 'admin.title' | t }}</p>
+    <h1>{{ 'admin.nav.overview' | t }}</h1>
+  </div>
+
+  <button type="button" class="btn btn--ghost btn--sm" [disabled]="loading()" (click)="load()">
+    {{ (loading() ? 'admin.overview.refreshing' : 'admin.overview.refresh') | t }}
+  </button>
+</header>
+
+@if (loading()) {
+  <app-skeleton [count]="1" [height]="92" />
+  <app-skeleton [count]="2" [height]="220" />
+} @else if (failed()) {
+  <div class="card">
+    <h2>{{ 'error.generic.title' | t }}</h2>
+    <p class="muted">{{ 'error.generic.copy' | t }}</p>
+    <button type="button" class="btn" (click)="load()">{{ 'common.retry' | t }}</button>
+  </div>
+} @else {
+  <div class="metrics">
+    @for (metric of metrics(); track metric.label) {
+      @if (metric.link) {
+        <a class="metric" [routerLink]="metric.link">
+          <p class="metric__label">{{ metric.label | t }}</p>
+          <p class="metric__value" [class]="metric.tone ? 'tone-' + metric.tone : ''">{{ metric.value }}</p>
+          <p class="metric__hint">{{ metric.hint }}</p>
+        </a>
+      } @else {
+        <div class="metric">
+          <p class="metric__label">{{ metric.label | t }}</p>
+          <p class="metric__value" [class]="metric.tone ? 'tone-' + metric.tone : ''">{{ metric.value }}</p>
+          <p class="metric__hint">{{ metric.hint }}</p>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="panels">
+    <section class="card panel panel--wide" aria-labelledby="revenue-heading">
+      <h2 id="revenue-heading" class="panel__title">{{ 'admin.overview.revenueChart' | t }}</h2>
+      <app-trend-chart
+        [points]="trend()"
+        [currency]="currency()"
+        [caption]="locale.t('admin.overview.peak')"
+        [tableCaption]="locale.t('admin.overview.revenueChart')"
+      />
+    </section>
+
+    <section class="card panel" aria-labelledby="status-heading">
+      <h2 id="status-heading" class="panel__title">{{ 'admin.overview.statusChart' | t }}</h2>
+      <app-breakdown-bar
+        [data]="statusBreakdown()"
+        [emptyLabel]="locale.t('admin.overview.noOrders')"
+      />
+    </section>
+  </div>
+
+  <div class="panels">
+    <section class="card panel panel--wide" aria-labelledby="recent-heading">
+      <div class="panel__head">
+        <h2 id="recent-heading" class="panel__title">{{ 'admin.overview.recentOrders' | t }}</h2>
+        <a class="panel__more" routerLink="orders">{{ 'admin.nav.orders' | t }}</a>
+      </div>
+
+      @if (!recent().length) {
+        <p class="muted panel__empty">{{ 'admin.overview.noOrders' | t }}</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'orders.number' | t }}</th>
+                <th scope="col">{{ 'orders.placed' | t }}</th>
+                <th scope="col">{{ 'orders.status' | t }}</th>
+                <th scope="col" class="table__end">{{ 'orders.total' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of recent(); track order.id) {
+                <tr>
+                  <td class="mono">{{ order.orderNumber }}</td>
+                  <td>{{ order.createdAt | localDate }}</td>
+                  <td><app-status-chip [spec]="orderStatusChip(order.status)" /></td>
+                  <td class="table__end tabular">{{ order.total | money: order.currency }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <!-- An "all clear" state still needs to say what was checked, or it reads as
+         a panel that failed to load rather than one with nothing to report. -->
+    <section class="card panel" aria-labelledby="attention-heading">
+      <h2 id="attention-heading" class="panel__title">{{ 'admin.overview.needsAttention' | t }}</h2>
+
+      @if (allClear()) {
+        <p class="attention__clear">{{ 'admin.overview.allClear' | t }}</p>
+        <p class="muted panel__empty">{{ 'admin.overview.allClearCopy' | t }}</p>
+      } @else {
+        <ul class="attention">
+          @for (payment of failedPayments(); track payment.id) {
+            <li class="attention__item">
+              <app-status-chip [spec]="paymentStatusChip(payment.status)" />
+              <span class="attention__text">{{ payment.failureReason ?? payment.orderId }}</span>
+              <span class="tabular">{{ payment.amount | money: payment.currency }}</span>
+            </li>
+          }
+
+          @for (item of criticalStock(); track item.productId) {
+            <li class="attention__item">
+              <span class="chip chip--warn">{{ 'admin.overview.lowStock' | t }}</span>
+              <span class="attention__text mono">{{ item.sku }}</span>
+              <span class="tabular">{{ locale.formatNumber(item.available) }}</span>
+            </li>
+          }
+        </ul>
+
+        <a class="panel__more" routerLink="payments">{{ 'admin.nav.payments' | t }}</a>
+      }
+    </section>
+  </div>
+}

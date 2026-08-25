@@ -4,25 +4,25 @@ import { RouterLink } from '@angular/router';
 import { OrderService } from '../../core/api.service';
 import type { OrderDetail } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { MoneyPipe } from '../../shared/money.pipe';
+import { MoneyPipe, TranslatePipe } from '../../core/i18n';
 import { OrderStatusChip } from './order-status-chip';
 
 @Component({
   selector: 'app-order-detail',
-  imports: [RouterLink, DatePipe, MoneyPipe, OrderStatusChip],
+  imports: [RouterLink, DatePipe, MoneyPipe, OrderStatusChip, TranslatePipe],
   template: `
-    <div class="sama-page">
+    <div class="page">
       @if (loading()) {
-        <p class="sama-muted" aria-busy="true">Loading…</p>
+        <p class="muted" aria-busy="true">{{ 'common.loading' | t }}</p>
       } @else if (order(); as detail) {
-        <nav class="crumbs" aria-label="Breadcrumb">
-          <a routerLink="/orders">Orders</a> <span aria-hidden="true">/</span> <span>{{ detail.orderNumber }}</span>
+        <nav class="crumbs" [attr.aria-label]="'nav.breadcrumb' | t">
+          <a routerLink="/orders">{{ 'orders.title' | t }}</a> <span aria-hidden="true">/</span> <span>{{ detail.orderNumber }}</span>
         </nav>
 
         <header class="head">
           <div>
             <h1>{{ detail.orderNumber }}</h1>
-            <p class="sama-muted">Placed {{ detail.createdAt | date: 'medium' }}</p>
+            <p class="muted">Placed {{ detail.createdAt | date: 'medium' }}</p>
           </div>
           <app-order-status-chip [status]="detail.status" />
         </header>
@@ -34,31 +34,31 @@ import { OrderStatusChip } from './order-status-chip';
         }
 
         @if (detail.status === 'Cancelled' && detail.cancellationReason) {
-          <div class="sama-card cancelled">
+          <div class="card cancelled">
             <strong>Cancelled</strong>
-            <p class="sama-muted">{{ detail.cancellationReason }}</p>
+            <p class="muted">{{ detail.cancellationReason }}</p>
           </div>
         }
 
         <div class="layout">
-          <section class="sama-card">
-            <h2>Items</h2>
+          <section class="card">
+            <h2>{{ 'orders.items' | t }}</h2>
             <ul class="lines">
               @for (line of detail.lines; track line.productId) {
                 <li>
                   <span class="lines__name">{{ line.quantity }} × {{ line.name }}</span>
-                  <span class="sama-muted lines__sku">{{ line.sku }}</span>
+                  <span class="muted lines__sku">{{ line.sku }}</span>
                   <span class="lines__total">{{ line.lineTotal | money: detail.currency }}</span>
                 </li>
               }
             </ul>
             <div class="total">
-              <span>Total</span><span>{{ detail.total | money: detail.currency }}</span>
+              <span>{{ 'orders.total' | t }}</span><span class="tabular">{{ detail.total | money: detail.currency }}</span>
             </div>
           </section>
 
-          <aside class="sama-card">
-            <h2>Delivery</h2>
+          <aside class="card">
+            <h2>{{ 'orders.delivery' | t }}</h2>
             <address>
               {{ detail.shippingAddress.line1 }}<br />
               {{ detail.shippingAddress.city }}<br />
@@ -67,7 +67,7 @@ import { OrderStatusChip } from './order-status-chip';
             </address>
 
             @if (canCancel()) {
-              <button type="button" class="sama-button sama-button--danger full"
+              <button type="button" class="btn btn--danger full"
                       [disabled]="cancelling()" (click)="cancel(detail)">
                 {{ cancelling() ? 'Cancelling…' : 'Cancel order' }}
               </button>
@@ -75,34 +75,34 @@ import { OrderStatusChip } from './order-status-chip';
           </aside>
         </div>
       } @else {
-        <div class="sama-card missing">
-          <h1>Order not found</h1>
-          <a class="sama-button" routerLink="/orders">Back to your orders</a>
+        <div class="card missing">
+          <h1>{{ 'orders.notFound.title' | t }}</h1>
+          <a class="btn" routerLink="/orders">{{ 'orders.backToOrders' | t }}</a>
         </div>
       }
     </div>
   `,
   styles: `
-    .crumbs { font-size: 0.85rem; color: var(--sama-ink-soft); margin-bottom: 1rem; display: flex; gap: 0.4rem; }
+    .crumbs { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 1rem; display: flex; gap: 0.4rem; }
     .crumbs a { text-decoration: none; }
     .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
     .head p { margin: 0; }
     .settling {
-      background: var(--sama-accent-soft); color: var(--sama-accent);
+      background: var(--accent-wash); color: var(--accent);
       padding: 0.7rem 1rem; border-radius: var(--sama-radius-sm); font-size: 0.9rem; margin: 0 0 1.25rem;
     }
-    .cancelled { border-left: 3px solid var(--sama-danger); margin-bottom: 1.25rem; }
+    .cancelled { border-left: 3px solid var(--critical); margin-bottom: 1.25rem; }
     .cancelled p { margin: 0.25rem 0 0; }
     .layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
     .lines { list-style: none; margin: 0 0 1rem; padding: 0; }
-    .lines li { display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--sama-border); }
+    .lines li { display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
     .lines__sku { font-size: 0.8rem; }
     .lines__total { font-weight: 600; }
     .total { display: flex; justify-content: space-between; font-weight: 650; font-size: 1.05rem; }
     address { font-style: normal; line-height: 1.7; margin-bottom: 1rem; }
     .full { width: 100%; }
     .missing { text-align: center; padding: 3rem; }
-    .missing .sama-button { margin-top: 1rem; }
+    .missing .btn { margin-top: 1rem; }
     @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
   `,
 })

@@ -28,18 +28,18 @@ import { BasketStore } from '../core/basket-store';
       width: 36px;
       height: 36px;
       border-radius: 8px;
-      color: var(--sama-ink);
+      color: var(--text);
       text-decoration: none;
     }
-    .basket:hover { background: var(--sama-surface-alt); }
+    .basket:hover { background: var(--surface-2); }
     .basket__count {
       position: absolute;
       top: 0; right: 0;
       min-width: 17px;
       padding: 0 4px;
       border-radius: 9px;
-      background: var(--sama-accent);
-      color: var(--sama-accent-ink);
+      background: var(--accent);
+      color: var(--accent-ink);
       font-size: 0.68rem;
       font-weight: 700;
       line-height: 17px;

@@ -1,0 +1,110 @@
+@if (department(); as dept) {
+  <!-- A department leads with its own art direction and a buying note. The note
+       answers the question people actually arrive with — how do these fit, how
+       long are they guaranteed — rather than repeating the marketing line. -->
+  <header class="dept">
+    <img class="dept__image" [src]="dept.image" alt="" fetchpriority="high" decoding="async" />
+    <span class="dept__veil" aria-hidden="true"></span>
+
+    <div class="dept__text page">
+      <h1 class="dept__title">
+        <span class="dept__title-primary">{{ dept.title | t }}</span>
+        <span class="dept__title-ghost" aria-hidden="true">{{
+          locale.locale() === 'ar' ? dept.english : dept.arabic
+        }}</span>
+      </h1>
+      <p class="dept__lede">{{ dept.lede | t }}</p>
+      <p class="dept__note">{{ dept.note | t }}</p>
+    </div>
+  </header>
+} @else {
+  <header class="page shop-head">
+    <h1>{{ 'catalog.title' | t }}</h1>
+    <p class="lede">{{ 'catalog.lede' | t }}</p>
+  </header>
+}
+
+<div class="page">
+  <div class="toolbar">
+    <p class="toolbar__count" aria-live="polite">
+      @if (loading()) {
+        {{ 'common.loading' | t }}
+      } @else if (total() === 1) {
+        {{ 'catalog.resultsOne' | t }}
+      } @else {
+        {{ 'catalog.results' | t: { count: locale.formatNumber(total()) } }}
+      }
+    </p>
+
+    <div class="toolbar__controls">
+      @if (!department() && categories().length) {
+        <label class="toolbar__control">
+          <span>{{ 'catalog.filter.category' | t }}</span>
+          <select [value]="categoryId() ?? ''" (change)="setCategory($any($event.target).value)">
+            <option value="">{{ 'catalog.filter.all' | t }}</option>
+            @for (category of categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <label class="toolbar__control">
+        <span>{{ 'catalog.sort.label' | t }}</span>
+        <select [value]="sort()" (change)="setSort($any($event.target).value)">
+          @for (option of sortOptions; track option.key) {
+            <option [value]="option.key">{{ option.label | t }}</option>
+          }
+        </select>
+      </label>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="grid">
+      @for (placeholder of [1, 2, 3, 4, 5, 6, 7, 8]; track placeholder) {
+        <app-skeleton [count]="1" [height]="360" />
+      }
+    </div>
+  } @else if (failed()) {
+    <div class="notice card">
+      <h2>{{ 'error.generic.title' | t }}</h2>
+      <p class="muted">{{ 'error.generic.copy' | t }}</p>
+      <button type="button" class="btn btn--ghost" (click)="clearFilters()">
+        {{ 'common.retry' | t }}
+      </button>
+    </div>
+  } @else if (!items().length) {
+    <!-- An empty result is a dead end unless it offers a way out of it. -->
+    <div class="notice card">
+      <h2>{{ 'catalog.empty.title' | t }}</h2>
+      <p class="muted">{{ 'catalog.empty.copy' | t }}</p>
+      @if (hasFilters()) {
+        <button type="button" class="btn" (click)="clearFilters()">
+          {{ 'catalog.empty.action' | t }}
+        </button>
+      } @else {
+        <a class="btn" routerLink="/">{{ 'error.notFound.action' | t }}</a>
+      }
+    </div>
+  } @else {
+    <div class="grid">
+      @for (product of items(); track product.id; let i = $index) {
+        <app-product-card
+          [product]="product"
+          [busy]="adding() === product.id"
+          [eager]="i < 4"
+          (add)="add($event)"
+        />
+      }
+    </div>
+
+    @if (hasNext()) {
+      <div class="more">
+        <button type="button" class="btn btn--ghost" [disabled]="loadingMore()" (click)="loadMore()">
+          {{ (loadingMore() ? 'common.loading' : 'catalog.loadMore') | t }}
+        </button>
+      </div>
+    }
+  }
+</div>

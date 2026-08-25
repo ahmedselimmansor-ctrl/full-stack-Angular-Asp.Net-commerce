@@ -16,9 +16,9 @@ import type { OrderStatus } from '../../core/models';
       display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
       font-size: 0.78rem; font-weight: 600; white-space: nowrap;
     }
-    .chip--pending { background: var(--sama-surface-alt); color: var(--sama-ink-soft); }
-    .chip--good { background: color-mix(in srgb, var(--sama-success) 16%, transparent); color: var(--sama-success); }
-    .chip--bad { background: color-mix(in srgb, var(--sama-danger) 14%, transparent); color: var(--sama-danger); }
+    .chip--pending { background: var(--surface-2); color: var(--text-soft); }
+    .chip--good { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
+    .chip--bad { background: color-mix(in srgb, var(--critical) 14%, transparent); color: var(--critical); }
   `,
 })
 export class OrderStatusChip {

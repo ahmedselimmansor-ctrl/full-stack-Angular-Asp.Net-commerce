@@ -9,15 +9,15 @@
   margin-bottom: 1.25rem;
 }
 
-.filters .sama-field { margin-bottom: 0; }
+.filters .field { margin-bottom: 0; }
 
 /* The wrapper scrolls, not the page. A wide table must never make the whole document
    scroll sideways. */
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--sama-border);
+  border: 1px solid var(--line);
   border-radius: var(--sama-radius);
-  background: var(--sama-surface);
+  background: var(--surface);
 }
 
 table {
@@ -31,21 +31,21 @@ thead th {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--sama-ink-soft);
+  color: var(--text-soft);
   font-weight: 600;
   padding: 0.7rem 0.85rem;
-  border-bottom: 1px solid var(--sama-border);
+  border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
 
 tbody td {
   padding: 0.7rem 0.85rem;
-  border-bottom: 1px solid var(--sama-border);
+  border-bottom: 1px solid var(--line);
   vertical-align: middle;
 }
 
 tbody tr:last-child td { border-bottom: 0; }
-tbody tr:hover { background: var(--sama-surface-alt); }
+tbody tr:hover { background: var(--surface-2); }
 
 /* Tabular figures so columns of numbers line up on the decimal. */
 .numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -66,13 +66,13 @@ tbody tr:hover { background: var(--sama-surface-alt); }
   padding: 0 0.4rem;
   font: inherit;
   font-size: 0.85rem;
-  color: var(--sama-accent);
+  color: var(--accent);
   cursor: pointer;
   text-decoration: none;
 }
 
 .link:hover { text-decoration: underline; }
-.link--danger { color: var(--sama-danger); }
+.link--danger { color: var(--critical); }
 
 .pager {
   display: flex;

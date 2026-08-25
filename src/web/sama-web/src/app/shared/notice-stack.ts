@@ -32,17 +32,17 @@ import { NotificationService } from '../core/notification.service';
       gap: 0.75rem;
       padding: 0.7rem 0.9rem;
       border-radius: var(--sama-radius-sm);
-      border: 1px solid var(--sama-border);
-      background: var(--sama-surface);
+      border: 1px solid var(--line);
+      background: var(--surface);
       box-shadow: var(--sama-shadow);
       font-size: 0.9rem;
     }
-    .notice--error { border-left: 3px solid var(--sama-danger); }
-    .notice--success { border-left: 3px solid var(--sama-success); }
-    .notice--info { border-left: 3px solid var(--sama-accent); }
+    .notice--error { border-left: 3px solid var(--critical); }
+    .notice--success { border-left: 3px solid var(--positive); }
+    .notice--info { border-left: 3px solid var(--accent); }
     button {
       background: none; border: 0; cursor: pointer;
-      color: var(--sama-ink-soft); font-size: 1.1rem; line-height: 1; padding: 0;
+      color: var(--text-soft); font-size: 1.1rem; line-height: 1; padding: 0;
     }
   `,
 })

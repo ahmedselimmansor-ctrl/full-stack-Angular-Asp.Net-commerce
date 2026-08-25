@@ -76,6 +76,14 @@ jobs:
       - name: Unit tests
         run: npm run test -- --watch=false
 
+      # The inline theme script in index.html is allowed by a SHA-256 hash rather
+      # than 'unsafe-inline'. Editing the script without updating the hash blocks
+      # it in production while everything still works locally, because the dev
+      # server sets no CSP at all.
+      - name: Content-Security-Policy hash is current
+        working-directory: .
+        run: ./scripts/check-csp-hash.sh
+
       - run: npm run build -- --configuration production
 
   android:

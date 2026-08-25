@@ -1,0 +1,165 @@
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1.75rem;
+}
+
+.head h1 { margin: 0; font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); }
+
+/* ---- Metrics ------------------------------------------------------------ */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  gap: 0.85rem;
+  margin-block-end: 1.25rem;
+}
+
+.metric {
+  display: block;
+  padding: 1.1rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--sama-radius);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 140ms var(--sama-ease), transform 140ms var(--sama-ease);
+}
+
+a.metric:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+.metric__label {
+  margin: 0 0 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+:host-context([dir='rtl']) .metric__label { letter-spacing: 0; text-transform: none; font-size: 0.82rem; }
+
+.metric__value {
+  margin: 0;
+  font-family: var(--sama-display);
+  font-weight: 700;
+  font-stretch: 112%;
+  font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.8rem);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  /* Long currency figures must not force the tile wider than its grid column. */
+  overflow-wrap: anywhere;
+}
+
+.metric__hint { margin: 0.3rem 0 0; font-size: 0.8rem; color: var(--text-soft); }
+
+.metric__value.tone-good { color: var(--positive); }
+.metric__value.tone-warn { color: var(--caution); }
+.metric__value.tone-bad { color: var(--critical); }
+
+/* ---- Panels ------------------------------------------------------------- */
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 0.85rem;
+  margin-block-end: 0.85rem;
+  align-items: start;
+}
+
+.panel { min-inline-size: 0; }
+
+.panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panel__title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-stretch: 108%;
+}
+
+.panel__head .panel__title { margin-block-end: 1rem; }
+
+.panel__more {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.panel__more:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.panel__empty { margin: 0; font-size: 0.9rem; }
+
+/* ---- Table -------------------------------------------------------------- */
+.table-wrap { overflow-x: auto; }
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: start;
+  padding: 0 0.7rem 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border-block-end: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+:host-context([dir='rtl']) .table th { letter-spacing: 0; text-transform: none; font-size: 0.82rem; }
+
+.table td {
+  padding: 0.7rem;
+  border-block-end: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td { border-block-end: 0; }
+.table__end { text-align: end; }
+
+/* ---- Needs attention ---------------------------------------------------- */
+.attention {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.attention__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.attention__text {
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attention__clear {
+  margin: 0 0 0.3rem;
+  font-weight: 600;
+  color: var(--positive);
+}
+
+@media (max-width: 1000px) {
+  .panels { grid-template-columns: 1fr; }
+}

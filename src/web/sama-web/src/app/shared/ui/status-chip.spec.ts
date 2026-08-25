@@ -2,34 +2,37 @@ import { describe, expect, it } from 'vitest';
 import { orderStatusChip, paymentStatusChip, productStatusChip } from './status-chip';
 
 describe('status chips', () => {
-  it('translates the saga’s internal states into customer wording', () => {
-    // "AwaitingPayment" is an accurate description of a saga step and a confusing thing to
-    // show a shopper.
-    expect(orderStatusChip('AwaitingPayment').label).toBe('Taking payment');
-    expect(orderStatusChip('Pending').label).toBe('Processing');
+  it('maps order statuses to translation keys, not finished English', () => {
+    // The chip must resolve its own text so an Arabic page does not show "Confirmed".
+    expect(orderStatusChip('AwaitingPayment')).toEqual({
+      label: 'status.order.awaitingPayment',
+      tone: 'warn',
+      translated: true,
+    });
+    expect(orderStatusChip('Pending').label).toBe('status.order.pending');
   });
 
-  it('tones a completed order positively and a cancelled one negatively', () => {
+  it('tones confirmed and shipped as positive, cancelled as critical', () => {
     expect(orderStatusChip('Confirmed').tone).toBe('good');
     expect(orderStatusChip('Shipped').tone).toBe('good');
     expect(orderStatusChip('Cancelled').tone).toBe('bad');
   });
 
-  it('passes an unrecognised status through rather than hiding it', () => {
-    // A status the client has not been taught about should still be visible; showing nothing
-    // would make a new server-side state look like a rendering bug.
-    expect(orderStatusChip('Refunding').label).toBe('Refunding');
-    expect(orderStatusChip('Refunding').tone).toBe('neutral');
+  it('shows an unrecognised status verbatim rather than hiding it', () => {
+    // A status the API has and the front end does not should be visible, not
+    // silently rendered as a missing translation key.
+    const chip = orderStatusChip('Refunding');
+    expect(chip).toEqual({ label: 'Refunding', tone: 'neutral', translated: false });
   });
 
-  it('marks a draft product as not live', () => {
+  it('maps product statuses', () => {
     expect(productStatusChip('Draft').tone).toBe('neutral');
-    expect(productStatusChip('Published').tone).toBe('good');
+    expect(productStatusChip('Published').label).toBe('status.product.published');
     expect(productStatusChip('Archived').tone).toBe('bad');
   });
 
-  it('reads a successful payment as “Paid”', () => {
-    expect(paymentStatusChip('Succeeded').label).toBe('Paid');
+  it('maps payment statuses', () => {
+    expect(paymentStatusChip('Succeeded').label).toBe('status.payment.succeeded');
     expect(paymentStatusChip('Failed').tone).toBe('bad');
     expect(paymentStatusChip('Refunded').tone).toBe('info');
   });

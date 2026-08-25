@@ -1,42 +1,9 @@
-<a class="skip-link" href="#main">Skip to content</a>
+<app-site-header />
 
-<header class="masthead">
-  <div class="masthead__inner">
-    <a class="brand" routerLink="/" aria-label="{{ storeName }} home">
-      <span class="brand__mark" aria-hidden="true">S</span>
-      <span class="brand__name">{{ storeName }}</span>
-    </a>
-
-    <nav class="nav" aria-label="Main">
-      <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Shop</a>
-      @if (isAuthenticated()) {
-        <a routerLink="/orders" routerLinkActive="is-active">Orders</a>
-        <a *samaHasPermission="adminPermissions" routerLink="/admin" routerLinkActive="is-active">
-          Back office
-        </a>
-      }
-    </nav>
-
-    <div class="masthead__actions">
-      <app-basket-badge />
-
-      @if (isAuthenticated()) {
-        <a class="avatar" routerLink="/account" [attr.title]="displayName() + ' — your account'"
-           [attr.aria-label]="'Your account, ' + displayName()">{{ initials() }}</a>
-        <button type="button" class="sama-button sama-button--ghost" (click)="signOut()">Sign out</button>
-      } @else {
-        <a class="sama-button sama-button--ghost" routerLink="/sign-in">Sign in</a>
-      }
-    </div>
-  </div>
-</header>
-
-<main id="main">
+<main id="main" tabindex="-1">
   <router-outlet />
 </main>
 
-<footer class="footer">
-  <p class="sama-muted">© {{ year }} {{ storeName }}. Built on GCP.</p>
-</footer>
+<app-site-footer />
 
 <app-notice-stack />

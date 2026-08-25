@@ -2,38 +2,39 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { TranslatePipe } from '../../core/i18n';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 
 @Component({
   selector: 'app-sign-in',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe],
   template: `
-    <div class="sama-page narrow">
-      <div class="sama-card">
-        <h1>Sign in</h1>
-        <p class="sama-muted">Welcome back.</p>
+    <div class="page narrow">
+      <div class="card">
+        <h1>{{ 'auth.signIn.title' | t }}</h1>
+        <p class="muted">{{ 'auth.signIn.lede' | t }}</p>
 
         <form (submit)="submit($event)" novalidate>
-          <label class="sama-field">
-            <span>Email</span>
+          <label class="field">
+            <span>{{ 'auth.email' | t }}</span>
             <input type="email" name="email" [(ngModel)]="email" required
                    autocomplete="email" [disabled]="busy()" />
           </label>
 
-          <label class="sama-field">
-            <span>Password</span>
+          <label class="field">
+            <span>{{ 'auth.password' | t }}</span>
             <input type="password" name="password" [(ngModel)]="password" required
                    autocomplete="current-password" [disabled]="busy()" />
           </label>
 
-          @if (error()) { <p class="sama-error" role="alert">{{ error() }}</p> }
+          @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
-          <button type="submit" class="sama-button full" [disabled]="busy()">
+          <button type="submit" class="btn full" [disabled]="busy()">
             {{ busy() ? 'Signing in…' : 'Sign in' }}
           </button>
         </form>
 
-        <p class="alt sama-muted">
+        <p class="alt muted">
           New here? <a routerLink="/register">Create an account</a>
         </p>
       </div>

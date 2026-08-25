@@ -1,4 +1,4 @@
-import { API, expect, provisionProduct, registerAccount, registerAdministrator, signIn, test } from './fixtures';
+import { accountButton, API, expect, provisionProduct, registerAccount, registerAdministrator, signIn, signOut, test } from './fixtures';
 
 /**
  * The journey that has to work: browse, add to basket, check out, and watch the saga settle.
@@ -25,15 +25,15 @@ test.describe('checkout', () => {
 
     await page.goto('/basket');
     await expect(page.getByRole('heading', { name: /your basket/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /proceed to checkout/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /go to checkout/i })).toBeVisible();
 
     // --- check out --------------------------------------------------------------------------
-    await page.getByRole('link', { name: /proceed to checkout/i }).click();
+    await page.getByRole('link', { name: /go to checkout/i }).click();
     await expect(page).toHaveURL(/\/checkout/);
 
-    await page.getByLabel('Address').fill('12 Corniche El Nil');
+    await page.getByLabel('Street address').fill('12 Corniche El Nil');
     await page.getByLabel('City').fill('Cairo');
-    await page.getByLabel('Postcode').fill('11511');
+    await page.getByLabel('Postal code').fill('11511');
     await page.getByRole('button', { name: /place order/i }).click();
 
     // Checkout answers 202 with the saga still running, so the customer lands on the order.
@@ -64,9 +64,9 @@ test.describe('checkout', () => {
     await expect(page.getByText(/added to your basket/i)).toBeVisible();
 
     await page.goto('/checkout');
-    await page.getByLabel('Address').fill('12 Corniche El Nil');
+    await page.getByLabel('Street address').fill('12 Corniche El Nil');
     await page.getByLabel('City').fill('Cairo');
-    await page.getByLabel('Postcode').fill('11511');
+    await page.getByLabel('Postal code').fill('11511');
     await page.getByRole('button', { name: /place order/i }).click();
 
     await expect(page).toHaveURL(/\/orders\//, { timeout: 30_000 });
@@ -100,15 +100,15 @@ test.describe('checkout', () => {
     await expect(page.getByText(/added to your basket/i)).toBeVisible();
 
     await page.goto('/checkout');
-    await page.getByLabel('Address').fill('12 Corniche El Nil');
+    await page.getByLabel('Street address').fill('12 Corniche El Nil');
     await page.getByLabel('City').fill('Cairo');
-    await page.getByLabel('Postcode').fill('11511');
+    await page.getByLabel('Postal code').fill('11511');
     await page.getByRole('button', { name: /place order/i }).click();
     await expect(page).toHaveURL(/\/orders\//, { timeout: 30_000 });
 
     const orderUrl = page.url();
 
-    await page.getByRole('button', { name: 'Sign out' }).click();
+    await signOut(page);
     await signIn(page, stranger);
 
     // Their own list is empty...
@@ -118,7 +118,7 @@ test.describe('checkout', () => {
     // ...and the other customer's order is not found, rather than forbidden. A 403 would
     // confirm it exists and turn id probing into an order-count oracle.
     await page.goto(orderUrl);
-    await expect(page.getByText(/order not found/i)).toBeVisible();
+    await expect(page.getByText(/could not find that order/i)).toBeVisible();
   });
 
   test('a repeated checkout with the same key does not place a second order', async ({ request }) => {

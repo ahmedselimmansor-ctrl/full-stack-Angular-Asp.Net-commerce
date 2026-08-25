@@ -3,9 +3,9 @@ import { Component, inject, signal } from '@angular/core';
 import { AdminService } from '../../core/admin.service';
 import type { Paged, PaymentView } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { MoneyPipe } from '../../shared/money.pipe';
+import { MoneyPipe, TranslatePipe } from '../../core/i18n';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
-import { EmptyState } from '../../shared/ui/empty-state';
+import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { Skeleton } from '../../shared/ui/skeleton';
 import { StatusChip, paymentStatusChip } from '../../shared/ui/status-chip';
@@ -16,25 +16,26 @@ import { HasPermissionDirective } from '../../core/has-permission.directive';
   imports: [
     DatePipe, MoneyPipe, PageHeader, Skeleton, EmptyState, StatusChip, ConfirmDialog,
     HasPermissionDirective,
+  TranslatePipe,
   ],
   template: `
-    <app-page-header title="Payments" description="Collections and refunds against orders." />
+    <app-page-header [title]="'admin.nav.payments' | t" [description]="'admin.payments.lede' | t" />
 
     @if (loading()) {
       <app-skeleton [count]="5" [height]="56" />
     } @else if ((page()?.totalCount ?? 0) === 0) {
-      <app-empty-state icon="⛃" title="No payments yet" description="Payments appear once orders are placed." />
+      <app-empty-state [icon]="EmptyIcons.payment" [title]="'admin.payments.empty' | t" [description]="'admin.payments.emptyCopy' | t" />
     } @else {
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">Payments</caption>
+          <caption class="sr-only">{{ 'admin.nav.payments' | t }}</caption>
           <thead>
             <tr>
               <th scope="col">Taken</th>
-              <th scope="col" class="numeric">Amount</th>
-              <th scope="col">Status</th>
-              <th scope="col">Detail</th>
-              <th scope="col"><span class="sr-only">Actions</span></th>
+              <th scope="col" class="numeric">{{ 'field.amount' | t }}</th>
+              <th scope="col">{{ 'field.status' | t }}</th>
+              <th scope="col">{{ 'field.detail' | t }}</th>
+              <th scope="col"><span class="sr-only">{{ 'common.actions' | t }}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -43,13 +44,13 @@ import { HasPermissionDirective } from '../../core/has-permission.directive';
                 <td>{{ payment.createdAt | date: 'medium' }}</td>
                 <td class="numeric">{{ payment.amount | money: payment.currency }}</td>
                 <td>
-                  <app-status-chip [label]="chip(payment.status).label" [tone]="chip(payment.status).tone" />
+                  <app-status-chip [spec]="chip(payment.status)" />
                 </td>
-                <td class="sama-muted detail">{{ payment.failureReason ?? '—' }}</td>
+                <td class="muted detail">{{ payment.failureReason ?? '—' }}</td>
                 <td class="actions">
                   @if (payment.status === 'Succeeded') {
                     <button *samaHasPermission="refundPermission" type="button"
-                            class="link link--danger" (click)="askToRefund(payment)">Refund</button>
+                            class="link link--danger" (click)="askToRefund(payment)">{{ 'admin.payments.refund' | t }}</button>
                   }
                 </td>
               </tr>
@@ -60,20 +61,20 @@ import { HasPermissionDirective } from '../../core/has-permission.directive';
 
       @if (page()!.totalPages > 1) {
         <nav class="pager" aria-label="Pagination">
-          <button type="button" class="sama-button sama-button--ghost"
-                  [disabled]="!page()!.hasPrevious" (click)="goTo(page()!.page - 1)">Previous</button>
-          <span class="sama-muted">Page {{ page()!.page }} of {{ page()!.totalPages }}</span>
-          <button type="button" class="sama-button sama-button--ghost"
-                  [disabled]="!page()!.hasNext" (click)="goTo(page()!.page + 1)">Next</button>
+          <button type="button" class="btn btn--ghost"
+                  [disabled]="!page()!.hasPrevious" (click)="goTo(page()!.page - 1)">{{ 'common.previous' | t }}</button>
+          <span class="muted">Page {{ page()!.page }} of {{ page()!.totalPages }}</span>
+          <button type="button" class="btn btn--ghost"
+                  [disabled]="!page()!.hasNext" (click)="goTo(page()!.page + 1)">{{ 'common.next' | t }}</button>
         </nav>
       }
     }
 
     <app-confirm-dialog
       [open]="pendingRefund() !== null"
-      title="Refund this payment?"
+      [title]="'admin.payments.refundConfirm' | t"
       message="The amount is returned to the customer. This cannot be undone from here."
-      confirmLabel="Refund"
+      [confirmLabel]="'admin.payments.refund' | t"
       [destructive]="true"
       (confirmed)="confirmRefund()"
       (cancelled)="pendingRefund.set(null)" />
@@ -82,6 +83,7 @@ import { HasPermissionDirective } from '../../core/has-permission.directive';
   styles: `.detail { max-width: 32ch; font-size: 0.85rem; }`,
 })
 export class AdminPaymentTable {
+  protected readonly EmptyIcons = EmptyIcons;
   private readonly admin = inject(AdminService);
   private readonly notifications = inject(NotificationService);
 

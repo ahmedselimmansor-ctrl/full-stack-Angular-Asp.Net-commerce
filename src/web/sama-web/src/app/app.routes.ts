@@ -6,12 +6,38 @@ import { authGuard, permissionGuard } from './core/guards';
  * checkout, order-history or back-office bundles that most visitors never reach — the admin
  * area in particular is dead weight for all but a handful of users.
  */
+const catalogPage = () => import('./features/catalog/catalog-page').then(m => m.CatalogPage);
+
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./features/catalog/product-list').then(m => m.ProductListPage),
-    title: 'Sama — Shop',
+    loadComponent: () => import('./features/home/home-page').then(m => m.HomePage),
+    data: { titleKey: 'brand.tagline' },
   },
+  {
+    path: 'shop',
+    loadComponent: catalogPage,
+    data: { titleKey: 'catalog.title' },
+  },
+
+  // The three departments share one component; `data.department` is what makes
+  // each one pin its category and show its own masthead.
+  {
+    path: 'clothing',
+    loadComponent: catalogPage,
+    data: { department: 'clothing', titleKey: 'clothing.title' },
+  },
+  {
+    path: 'shoes',
+    loadComponent: catalogPage,
+    data: { department: 'shoes', titleKey: 'shoes.title' },
+  },
+  {
+    path: 'electronics',
+    loadComponent: catalogPage,
+    data: { department: 'electronics', titleKey: 'electronics.title' },
+  },
+
   {
     path: 'products/:slug',
     loadComponent: () => import('./features/catalog/product-detail').then(m => m.ProductDetailPage),
@@ -19,36 +45,36 @@ export const routes: Routes = [
   {
     path: 'sign-in',
     loadComponent: () => import('./features/auth/sign-in').then(m => m.SignInPage),
-    title: 'Sign in — Sama',
+    data: { titleKey: 'auth.signIn.title' },
   },
   {
     path: 'register',
     loadComponent: () => import('./features/auth/register').then(m => m.RegisterPage),
-    title: 'Create an account — Sama',
+    data: { titleKey: 'auth.register.title' },
   },
   {
     path: 'account',
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/account-page').then(m => m.AccountPage),
-    title: 'Your account — Sama',
+    data: { titleKey: 'account.title' },
   },
   {
     path: 'basket',
     canActivate: [authGuard],
     loadComponent: () => import('./features/basket/basket-page').then(m => m.BasketPage),
-    title: 'Your basket — Sama',
+    data: { titleKey: 'basket.title' },
   },
   {
     path: 'checkout',
     canActivate: [authGuard],
     loadComponent: () => import('./features/checkout/checkout-page').then(m => m.CheckoutPage),
-    title: 'Checkout — Sama',
+    data: { titleKey: 'checkout.title' },
   },
   {
     path: 'orders',
     canActivate: [authGuard],
     loadComponent: () => import('./features/orders/order-list').then(m => m.OrderListPage),
-    title: 'Your orders — Sama',
+    data: { titleKey: 'orders.title' },
   },
   {
     path: 'orders/:id',
@@ -77,64 +103,56 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('./features/admin/dashboard').then(m => m.AdminDashboard),
-        title: 'Back office — Sama',
+        data: { titleKey: 'admin.title' },
       },
       {
         path: 'products',
         canActivate: [permissionGuard],
-        data: { permissions: ['catalog:product:write'] },
         loadComponent: () => import('./features/admin/product-table').then(m => m.AdminProductTable),
-        title: 'Products — Sama',
+        data: { permissions: ['catalog:product:write'], titleKey: 'admin.products.title' },
       },
       {
         // Before the :id route, or "new" would be read as a product id.
         path: 'products/new',
         canActivate: [permissionGuard],
-        data: { permissions: ['catalog:product:write'] },
+        data: { permissions: ['catalog:product:write'], titleKey: 'admin.products.new' },
         loadComponent: () => import('./features/admin/product-form').then(m => m.AdminProductForm),
-        title: 'New product — Sama',
       },
       {
         path: 'products/:id',
         canActivate: [permissionGuard],
-        data: { permissions: ['catalog:product:write'] },
+        data: { permissions: ['catalog:product:write'], titleKey: 'admin.products.edit' },
         loadComponent: () => import('./features/admin/product-form').then(m => m.AdminProductForm),
-        title: 'Edit product — Sama',
       },
       {
         path: 'categories',
         canActivate: [permissionGuard],
-        data: { permissions: ['catalog:category:write'] },
         loadComponent: () => import('./features/admin/category-table').then(m => m.AdminCategoryTable),
-        title: 'Categories — Sama',
+        data: { permissions: ['catalog:category:write'], titleKey: 'admin.categories.title' },
       },
       {
         path: 'stock',
         canActivate: [permissionGuard],
-        data: { permissions: ['inventory:stock:read'] },
         loadComponent: () => import('./features/admin/stock-table').then(m => m.AdminStockTable),
-        title: 'Stock — Sama',
+        data: { permissions: ['inventory:stock:read'], titleKey: 'admin.nav.stock' },
       },
       {
         path: 'orders',
         canActivate: [permissionGuard],
-        data: { permissions: ['ordering:order:read.any'] },
         loadComponent: () => import('./features/admin/order-table').then(m => m.AdminOrderTable),
-        title: 'Orders — Sama',
+        data: { permissions: ['ordering:order:read.any'], titleKey: 'admin.nav.orders' },
       },
       {
         path: 'payments',
         canActivate: [permissionGuard],
-        data: { permissions: ['payment:payment:read.any'] },
         loadComponent: () => import('./features/admin/payment-table').then(m => m.AdminPaymentTable),
-        title: 'Payments — Sama',
+        data: { permissions: ['payment:payment:read.any'], titleKey: 'admin.nav.payments' },
       },
       {
         path: 'users',
         canActivate: [permissionGuard],
-        data: { permissions: ['identity:user:read'] },
         loadComponent: () => import('./features/admin/user-table').then(m => m.AdminUserTable),
-        title: 'Users — Sama',
+        data: { permissions: ['identity:user:read'], titleKey: 'admin.nav.users' },
       },
     ],
   },
@@ -142,12 +160,12 @@ export const routes: Routes = [
   {
     path: 'forbidden',
     loadComponent: () => import('./features/auth/forbidden').then(m => m.ForbiddenPage),
-    title: 'Not permitted — Sama',
+    data: { titleKey: 'error.forbidden.title' },
   },
   {
     // A real page, not a redirect: redirecting hides stale links instead of surfacing them.
     path: '**',
     loadComponent: () => import('./features/errors/not-found').then(m => m.NotFoundPage),
-    title: 'Page not found — Sama',
+    data: { titleKey: 'error.notFound.title' },
   },
 ];

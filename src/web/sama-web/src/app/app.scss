@@ -1,98 +1,17 @@
-.skip-link {
-  position: absolute;
-  left: -9999px;
-  top: 0;
-  background: var(--sama-accent);
-  color: var(--sama-accent-ink);
-  padding: 0.6rem 1rem;
-  z-index: 100;
-}
-
-/* Only visible once focused — keyboard users get the shortcut, everyone else is unaffected. */
-.skip-link:focus { left: 0; }
-
-.masthead {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: color-mix(in srgb, var(--sama-surface) 88%, transparent);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--sama-border);
-}
-
-.masthead__inner {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0.75rem 1.25rem;
+:host {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  flex-direction: column;
+  min-block-size: 100dvh;
 }
 
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  text-decoration: none;
-  font-family: var(--sama-serif);
-  font-size: 1.15rem;
-  font-weight: 600;
+/* The main region grows so a short page still pushes the footer to the bottom
+   rather than leaving it floating mid-screen. */
+main {
+  flex: 1 0 auto;
 }
 
-.brand__mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--sama-accent);
-  color: var(--sama-accent-ink);
-  font-size: 0.95rem;
-}
-
-.nav {
-  display: flex;
-  gap: 1.1rem;
-  margin-right: auto;
-  font-size: 0.95rem;
-}
-
-.nav a {
-  text-decoration: none;
-  color: var(--sama-ink-soft);
-  padding-bottom: 2px;
-  border-bottom: 2px solid transparent;
-}
-
-.nav a.is-active { color: var(--sama-ink); border-bottom-color: var(--sama-accent); }
-
-.masthead__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.avatar {
-  text-decoration: none;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--sama-accent-soft);
-  color: var(--sama-accent);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.footer {
-  border-top: 1px solid var(--sama-border);
-  padding: 1.5rem 1.25rem;
-  text-align: center;
-  font-size: 0.85rem;
-}
-
-@media (max-width: 640px) {
-  .nav { gap: 0.75rem; font-size: 0.9rem; }
-  .brand__name { display: none; }
+/* The skip link moves focus here. Without a tabindex the target is not
+   focusable and the jump lands nowhere for screen-reader users. */
+main:focus {
+  outline: none;
 }

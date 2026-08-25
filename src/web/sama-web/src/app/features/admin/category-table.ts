@@ -1,19 +1,20 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/admin.service';
+import { TranslatePipe } from '../../core/i18n';
 import { CatalogService } from '../../core/api.service';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 import type { CategoryNode } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
-import { EmptyState } from '../../shared/ui/empty-state';
+import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { Skeleton } from '../../shared/ui/skeleton';
 
 @Component({
   selector: 'app-admin-categories',
-  imports: [FormsModule, PageHeader, Skeleton, EmptyState],
+  imports: [FormsModule, PageHeader, Skeleton, EmptyState, TranslatePipe],
   template: `
-    <app-page-header title="Categories" description="How the storefront's catalogue is organised." />
+    <app-page-header [title]="'admin.categories.title' | t" [description]="'admin.categories.lede' | t" />
 
     <div class="layout">
       <section>
@@ -21,39 +22,39 @@ import { Skeleton } from '../../shared/ui/skeleton';
           <app-skeleton [count]="4" [height]="44" />
         } @else if (tree().length === 0) {
           <app-empty-state
-            icon="⌸"
-            title="No categories yet"
+            [icon]="EmptyIcons.category"
+            [title]="'admin.categories.empty' | t"
             description="Products need a category, so create one before adding your first product." />
         } @else {
           <ul class="tree">
             @for (node of flattened(); track node.id) {
               <li [style.padding-left.rem]="node.depth * 1.25">
                 <span class="tree__name">{{ node.name }}</span>
-                <code class="tree__slug sama-muted">/{{ node.slug }}</code>
+                <code class="tree__slug muted">/{{ node.slug }}</code>
               </li>
             }
           </ul>
         }
       </section>
 
-      <aside class="sama-card">
-        <h2>New category</h2>
+      <aside class="card">
+        <h2>{{ 'admin.categories.new' | t }}</h2>
 
         <form (submit)="create($event)" novalidate>
-          <label class="sama-field">
-            <span>Name</span>
+          <label class="field">
+            <span>{{ 'field.name' | t }}</span>
             <input name="name" [(ngModel)]="name" (blur)="suggestSlug()" [disabled]="saving()" required />
-            @if (fieldError('Name'); as m) { <span class="sama-error">{{ m }}</span> }
+            @if (fieldError('Name'); as m) { <span class="error-text">{{ m }}</span> }
           </label>
 
-          <label class="sama-field">
-            <span>Slug</span>
+          <label class="field">
+            <span>{{ 'field.slug' | t }}</span>
             <input name="slug" [(ngModel)]="slug" [disabled]="saving()" required />
-            @if (fieldError('Slug'); as m) { <span class="sama-error">{{ m }}</span> }
+            @if (fieldError('Slug'); as m) { <span class="error-text">{{ m }}</span> }
           </label>
 
-          <label class="sama-field">
-            <span>Parent</span>
+          <label class="field">
+            <span>{{ 'field.parent' | t }}</span>
             <select name="parentId" [(ngModel)]="parentId" [disabled]="saving()">
               <option [ngValue]="null">None — a top-level category</option>
               @for (node of flattened(); track node.id) {
@@ -62,15 +63,15 @@ import { Skeleton } from '../../shared/ui/skeleton';
             </select>
           </label>
 
-          <label class="sama-field">
-            <span>Sort order</span>
+          <label class="field">
+            <span>{{ 'field.sortOrder' | t }}</span>
             <input name="sortOrder" type="number" min="0" [(ngModel)]="sortOrder" [disabled]="saving()" />
-            <span class="hint sama-muted">Lower numbers appear first.</span>
+            <span class="hint muted">Lower numbers appear first.</span>
           </label>
 
-          @if (error()) { <p class="sama-error" role="alert">{{ error() }}</p> }
+          @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
-          <button type="submit" class="sama-button full" [disabled]="saving()">
+          <button type="submit" class="btn full" [disabled]="saving()">
             {{ saving() ? 'Creating…' : 'Create category' }}
           </button>
         </form>
@@ -81,14 +82,14 @@ import { Skeleton } from '../../shared/ui/skeleton';
     .layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
     .tree {
       list-style: none; margin: 0; padding: 0;
-      background: var(--sama-surface);
-      border: 1px solid var(--sama-border);
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: var(--sama-radius);
     }
     .tree li {
       display: flex; align-items: baseline; gap: 0.75rem;
       padding: 0.6rem 0.9rem;
-      border-bottom: 1px solid var(--sama-border);
+      border-bottom: 1px solid var(--line);
     }
     .tree li:last-child { border-bottom: 0; }
     .tree__name { font-weight: 550; }
@@ -99,6 +100,7 @@ import { Skeleton } from '../../shared/ui/skeleton';
   `,
 })
 export class AdminCategoryTable {
+  protected readonly EmptyIcons = EmptyIcons;
   private readonly admin = inject(AdminService);
   private readonly catalog = inject(CatalogService);
   private readonly notifications = inject(NotificationService);

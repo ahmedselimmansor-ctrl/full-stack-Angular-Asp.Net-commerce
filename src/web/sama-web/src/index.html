@@ -1,13 +1,40 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
-  <title>Sama</title>
+  <title>Sama — clothing, shoes and electronics</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Sama — everyday things, chosen well.">
-  <meta name="theme-color" content="#8a5a2b">
+  <meta name="description" content="Sama — clothing, shoes and electronics, bought by people who have to justify every line. Cairo, Dubai, Riyadh, Amman.">
+  <meta name="theme-color" content="#EBEEEC">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Archivo carries the Latin display voice, Reem Kufi the Arabic, and IBM Plex
+       Sans Arabic covers body text in both scripts so metrics stay even when the
+       language switches. Preconnect because the fonts gate first meaningful paint. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Reem+Kufi:wght@400;500;600;700&display=swap">
+
+  <script>
+    // Applied before first paint so a dark-mode visitor never sees a white flash
+    // while Angular boots. Mirrors ThemeService, which takes over once it loads.
+    (function () {
+      try {
+        var stored = localStorage.getItem('sama.theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', stored);
+        }
+        var locale = localStorage.getItem('sama.locale');
+        if (locale === 'ar' || locale === 'en') {
+          document.documentElement.setAttribute('lang', locale);
+          document.documentElement.setAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr');
+        }
+      } catch (e) {
+        /* Private browsing denies localStorage; defaults apply. */
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

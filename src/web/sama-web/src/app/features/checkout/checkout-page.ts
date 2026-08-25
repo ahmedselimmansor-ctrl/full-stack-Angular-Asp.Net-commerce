@@ -1,50 +1,51 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { OrderService } from '../../core/api.service';
 import { BasketStore } from '../../core/basket-store';
 import { ApiError } from '../../core/interceptors/error.interceptor';
-import { MoneyPipe } from '../../shared/money.pipe';
+import { LocaleService, MoneyPipe, TranslatePipe } from '../../core/i18n';
 
 @Component({
   selector: 'app-checkout',
-  imports: [FormsModule, RouterLink, MoneyPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, RouterLink, MoneyPipe, TranslatePipe],
   template: `
-    <div class="sama-page">
-      <h1>Checkout</h1>
+    <div class="page">
+      <h1>{{ 'checkout.title' | t }}</h1>
 
       @if (store.isEmpty() && store.basket() !== null) {
-        <div class="sama-card empty">
-          <h2>Your basket is empty</h2>
-          <a class="sama-button" routerLink="/">Back to the shop</a>
+        <div class="card empty">
+          <h2>{{ 'basket.empty.title' | t }}</h2>
+          <a class="btn" routerLink="/shop">{{ 'basket.empty.action' | t }}</a>
         </div>
       } @else {
         <div class="layout">
-          <form class="sama-card" (submit)="submit($event)" novalidate>
-            <h2>Delivery address</h2>
+          <form class="card" (submit)="submit($event)" novalidate>
+            <h2>{{ 'checkout.address' | t }}</h2>
 
-            <label class="sama-field">
-              <span>Address</span>
+            <label class="field">
+              <span>{{ 'checkout.line1' | t }}</span>
               <input name="line1" [(ngModel)]="line1" required autocomplete="address-line1" [disabled]="busy()" />
-              @if (fieldError('ShippingAddress.Line1'); as m) { <span class="sama-error">{{ m }}</span> }
+              @if (fieldError('ShippingAddress.Line1'); as m) { <span class="error-text">{{ m }}</span> }
             </label>
 
             <div class="row">
-              <label class="sama-field">
-                <span>City</span>
+              <label class="field">
+                <span>{{ 'checkout.city' | t }}</span>
                 <input name="city" [(ngModel)]="city" required autocomplete="address-level2" [disabled]="busy()" />
-                @if (fieldError('ShippingAddress.City'); as m) { <span class="sama-error">{{ m }}</span> }
+                @if (fieldError('ShippingAddress.City'); as m) { <span class="error-text">{{ m }}</span> }
               </label>
 
-              <label class="sama-field">
-                <span>Postcode</span>
+              <label class="field">
+                <span>{{ 'checkout.postcode' | t }}</span>
                 <input name="postcode" [(ngModel)]="postcode" required autocomplete="postal-code" [disabled]="busy()" />
-                @if (fieldError('ShippingAddress.Postcode'); as m) { <span class="sama-error">{{ m }}</span> }
+                @if (fieldError('ShippingAddress.Postcode'); as m) { <span class="error-text">{{ m }}</span> }
               </label>
             </div>
 
-            <label class="sama-field">
-              <span>Country</span>
+            <label class="field">
+              <span>{{ 'checkout.country' | t }}</span>
               <select name="country" [(ngModel)]="country" [disabled]="busy()">
                 @for (option of countries; track option.code) {
                   <option [value]="option.code">{{ option.name }}</option>
@@ -52,27 +53,25 @@ import { MoneyPipe } from '../../shared/money.pipe';
               </select>
             </label>
 
-            @if (error()) { <p class="sama-error" role="alert">{{ error() }}</p> }
+            @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
-            <button type="submit" class="sama-button full" [disabled]="busy() || store.isEmpty()">
-              {{ busy() ? 'Placing your order…' : 'Place order' }}
+            <button type="submit" class="btn full" [disabled]="busy() || store.isEmpty()">
+              {{ (busy() ? 'checkout.placing' : 'checkout.placeOrder') | t }}
             </button>
 
-            <p class="sama-muted legal">
-              Prices are confirmed against the catalogue when your order is placed.
-            </p>
+            <p class="muted legal">{{ 'checkout.cardNote' | t }}</p>
           </form>
 
-          <aside class="summary sama-card">
-            <h2>Your order</h2>
+          <aside class="summary card">
+            <h2>{{ 'checkout.summary' | t }}</h2>
             @for (line of store.basket()?.items ?? []; track line.productId) {
               <div class="summary__row">
-                <span>{{ line.quantity }} × {{ line.name }}</span>
+                <span>{{ locale.formatNumber(line.quantity) }} × {{ line.name }}</span>
                 <span>{{ line.lineTotal | money: line.currency }}</span>
               </div>
             }
             <div class="summary__row summary__row--total">
-              <span>Total</span><span>{{ store.subtotal() | money: store.currency() }}</span>
+              <span>{{ 'checkout.total' | t }}</span><span class="tabular">{{ store.subtotal() | money: store.currency() }}</span>
             </div>
           </aside>
         </div>
@@ -84,15 +83,16 @@ import { MoneyPipe } from '../../shared/money.pipe';
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .full { width: 100%; margin-top: 0.5rem; }
     .legal { font-size: 0.78rem; margin: 0.75rem 0 0; }
-    .summary { position: sticky; top: 5rem; }
+    .summary { position: sticky; inset-block-start: 7rem; }
     .summary__row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.35rem 0; font-size: 0.9rem; }
-    .summary__row--total { font-weight: 650; font-size: 1.05rem; border-top: 1px solid var(--sama-border); margin-top: 0.4rem; padding-top: 0.7rem; }
+    .summary__row--total { font-weight: 650; font-size: 1.05rem; border-top: 1px solid var(--line); margin-top: 0.4rem; padding-top: 0.7rem; }
     .empty { text-align: center; padding: 3rem; }
-    .empty .sama-button { margin-top: 1rem; }
+    .empty .btn { margin-top: 1rem; }
     @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
   `,
 })
 export class CheckoutPage {
+  protected readonly locale = inject(LocaleService);
   private readonly orders = inject(OrderService);
   private readonly router = inject(Router);
   protected readonly store = inject(BasketStore);

@@ -1,155 +1,342 @@
-/* Sama design tokens and base styles.
-   Deliberately small: one accent, a neutral ramp, and generous spacing. A storefront's job is
-   to make products legible, so the chrome stays quiet. */
+/* =========================================================================
+   Sama — design tokens and base styles
 
+   Direction: "dusk over the city". The brand field is a deep indigo-teal that
+   stays constant in both themes, so the identity does not invert when someone
+   flips the lights; only the chrome around it adapts. The accent is a glaze
+   turquoise borrowed from Fatimid and Iznik ceramic, and the warm counter-note
+   is the sodium-amber of street lighting.
+
+   Everything is written with CSS logical properties — padding-inline,
+   margin-inline-start, inset-inline — so Arabic mirrors the entire layout
+   without a second stylesheet. That is the whole reason the RTL switch is a
+   one-line attribute change rather than a parallel design.
+   ========================================================================= */
+
+/* ---- Brand constants: identical in every theme -------------------------- */
 :root {
-  --sama-bg: #fbfaf8;
-  --sama-surface: #ffffff;
-  --sama-surface-alt: #f4f2ee;
-  --sama-border: #e4e0d8;
-  --sama-ink: #1c1a17;
-  --sama-ink-soft: #6b655c;
-  --sama-accent: #8a5a2b;
-  --sama-accent-ink: #ffffff;
-  --sama-accent-soft: #f3e9df;
-  --sama-danger: #a12d2d;
-  --sama-success: #2f6b45;
+  --sama-field: #0B1D28;        /* the dusk ground the hero and footer sit on */
+  --sama-field-deep: #061219;
+  --sama-glaze: #0E8A80;        /* ceramic turquoise */
+  --sama-glaze-bright: #2FD4C6;
+  --sama-sodium: #B8761A;       /* street light */
+  --sama-sodium-bright: #E9A13B;
 
-  --sama-radius: 10px;
-  --sama-radius-sm: 6px;
-  --sama-shadow: 0 1px 2px rgb(28 26 23 / 6%), 0 8px 24px rgb(28 26 23 / 6%);
+  --sama-radius: 14px;
+  --sama-radius-sm: 8px;
+  --sama-radius-pill: 999px;
 
-  --sama-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --sama-serif: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --sama-shadow-sm: 0 1px 2px rgb(6 18 25 / 6%);
+  --sama-shadow: 0 2px 4px rgb(6 18 25 / 5%), 0 12px 32px rgb(6 18 25 / 7%);
+  --sama-shadow-lg: 0 4px 8px rgb(6 18 25 / 6%), 0 24px 64px rgb(6 18 25 / 12%);
+
+  /* One family carries Latin and Arabic body text, so line height and colour
+     stay even when the script changes mid-page. */
+  --sama-body: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  --sama-display: 'Archivo', 'IBM Plex Sans Arabic', ui-sans-serif, sans-serif;
+  --sama-display-ar: 'Reem Kufi', 'IBM Plex Sans Arabic', sans-serif;
+  --sama-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --sama-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --sama-page: 1240px;
 }
 
+/* ---- Light: pale plaster, not cream ------------------------------------ */
+:root {
+  --bg: #EBEEEC;
+  --bg-alt: #E2E7E4;
+  --surface: #F7F9F7;
+  --surface-2: #EEF2F0;
+  --line: #D3DAD6;
+  --line-strong: #B9C3BE;
+  --text: #0E1A1F;
+  --text-soft: #566A72;
+  --text-faint: #8397A0;
+
+  --accent: var(--sama-glaze);
+  --accent-ink: #FFFFFF;
+  --accent-wash: #DCEFEC;
+  --warm: var(--sama-sodium);
+  --warm-wash: #F6E9D5;
+
+  --positive: #1F7A4C;
+  --positive-wash: #DCEEE3;
+  --caution: #9A6608;
+  --caution-wash: #F7EBD4;
+  --critical: #A72F2F;
+  --critical-wash: #F6DFDF;
+
+  --on-field: #E8F1F0;
+  --on-field-soft: #93AFB6;
+
+  color-scheme: light;
+}
+
+/* System preference, only when no explicit choice has been stamped. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --sama-bg: #171614;
-    --sama-surface: #201e1b;
-    --sama-surface-alt: #2a2724;
-    --sama-border: #3a3631;
-    --sama-ink: #f2efe9;
-    --sama-ink-soft: #a49d92;
-    --sama-accent: #c98d54;
-    --sama-accent-ink: #171614;
-    --sama-accent-soft: #2f2721;
-    --sama-danger: #e08585;
-    --sama-success: #7cc79b;
+  :root:not([data-theme='light']) {
+    --bg: #08131A;
+    --bg-alt: #0B1A22;
+    --surface: #0F212B;
+    --surface-2: #142B36;
+    --line: #1E3A47;
+    --line-strong: #2C505F;
+    --text: #E6EEF0;
+    --text-soft: #9DB3BB;
+    --text-faint: #6D8892;
+
+    --accent: var(--sama-glaze-bright);
+    --accent-ink: #052620;
+    --accent-wash: #103334;
+    --warm: var(--sama-sodium-bright);
+    --warm-wash: #33260F;
+
+    --positive: #55C98A;
+    --positive-wash: #102E20;
+    --caution: #E0A63C;
+    --caution-wash: #33280F;
+    --critical: #F08C8C;
+    --critical-wash: #351B1B;
+
+    color-scheme: dark;
   }
 }
 
-* { box-sizing: border-box; }
+/* Explicit choice wins in both directions. */
+:root[data-theme='dark'] {
+  --bg: #08131A;
+  --bg-alt: #0B1A22;
+  --surface: #0F212B;
+  --surface-2: #142B36;
+  --line: #1E3A47;
+  --line-strong: #2C505F;
+  --text: #E6EEF0;
+  --text-soft: #9DB3BB;
+  --text-faint: #6D8892;
 
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
+  --accent: var(--sama-glaze-bright);
+  --accent-ink: #052620;
+  --accent-wash: #103334;
+  --warm: var(--sama-sodium-bright);
+  --warm-wash: #33260F;
+
+  --positive: #55C98A;
+  --positive-wash: #102E20;
+  --caution: #E0A63C;
+  --caution-wash: #33280F;
+  --critical: #F08C8C;
+  --critical-wash: #351B1B;
+
+  color-scheme: dark;
 }
+
+/* ---- Reset ------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; min-height: 100%; }
+
+html { -webkit-text-size-adjust: 100%; }
 
 body {
-  background: var(--sama-bg);
-  color: var(--sama-ink);
-  font-family: var(--sama-font);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sama-body);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
+img, svg, video { max-width: 100%; height: auto; display: block; }
+
+/* ---- Type -------------------------------------------------------------- */
+h1, h2, h3, h4 {
+  font-family: var(--sama-display);
+  font-weight: 700;
+  /* Archivo is variable: widening the display faces is what gives the brand its
+     editorial, fashion-adjacent voice without reaching for a serif. */
+  font-stretch: 112%;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  margin: 0 0 0.5rem;
+  text-wrap: balance;
+}
+
+/* Arabic uses a Kufic display face; Archivo has no Arabic coverage and the
+   fallback would silently swap in a system font mid-heading. */
+[lang='ar'] h1, [lang='ar'] h2, [lang='ar'] h3, [lang='ar'] h4,
+[dir='rtl'] h1, [dir='rtl'] h2, [dir='rtl'] h3, [dir='rtl'] h4 {
+  font-family: var(--sama-display-ar);
+  font-stretch: normal;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+h1 { font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4.25rem); }
+h2 { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem); }
+h3 { font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); }
+
+p { margin: 0 0 1rem; text-wrap: pretty; }
 
 a { color: inherit; }
 
-h1, h2, h3 {
-  font-family: var(--sama-serif);
+/* An eyebrow that labels a section, not decoration: it names what follows. */
+.eyebrow {
+  font-family: var(--sama-body);
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-  margin: 0 0 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 0.6rem;
 }
 
-h1 { font-size: clamp(1.75rem, 1.2rem + 2vw, 2.5rem); }
-h2 { font-size: 1.375rem; }
+[dir='rtl'] .eyebrow { letter-spacing: 0; text-transform: none; font-size: 0.82rem; }
 
-.sama-page {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
-}
+.lede { font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem); color: var(--text-soft); max-width: 62ch; }
 
-.sama-card {
-  background: var(--sama-surface);
-  border: 1px solid var(--sama-border);
-  border-radius: var(--sama-radius);
-  padding: 1.25rem;
-}
+.muted { color: var(--text-soft); }
+.faint { color: var(--text-faint); }
+.tabular { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--sama-mono); font-size: 0.86em; }
 
-.sama-muted { color: var(--sama-ink-soft); }
+/* ---- Layout ------------------------------------------------------------ */
+.page { max-width: var(--sama-page); margin-inline: auto; padding-inline: clamp(1rem, 4vw, 2.5rem); }
+.page--narrow { max-width: 720px; }
+.section { padding-block: clamp(3rem, 7vw, 5.5rem); }
+.stack > * + * { margin-block-start: var(--stack, 1rem); }
 
-.sama-button {
+/* ---- Controls ---------------------------------------------------------- */
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.1rem;
+  padding: 0.72rem 1.4rem;
   border: 1px solid transparent;
-  border-radius: var(--sama-radius-sm);
-  background: var(--sama-accent);
-  color: var(--sama-accent-ink);
+  border-radius: var(--sama-radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
   font: inherit;
-  font-weight: 550;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1;
+  text-decoration: none;
   cursor: pointer;
-  transition: filter 120ms ease, opacity 120ms ease;
+  transition: transform 140ms var(--sama-ease), filter 140ms var(--sama-ease),
+              background-color 140ms var(--sama-ease);
 }
 
-.sama-button:hover:not(:disabled) { filter: brightness(1.08); }
-.sama-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.btn:active:not(:disabled) { transform: translateY(0); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.sama-button--ghost {
-  background: transparent;
-  color: var(--sama-ink);
-  border-color: var(--sama-border);
-}
+.btn--ghost { background: transparent; color: var(--text); border-color: var(--line-strong); }
+.btn--ghost:hover:not(:disabled) { background: var(--surface-2); filter: none; }
+.btn--quiet { background: var(--surface-2); color: var(--text); }
+.btn--danger { background: var(--critical); color: #fff; }
+.btn--onfield { background: var(--sama-glaze-bright); color: #052620; }
+.btn--onfield-ghost { background: transparent; color: var(--on-field); border-color: rgb(232 241 240 / 28%); }
+.btn--sm { padding: 0.45rem 0.9rem; font-size: 0.85rem; }
+.btn--block { width: 100%; }
 
-.sama-button--danger { background: var(--sama-danger); color: #fff; }
+/* ---- Forms ------------------------------------------------------------- */
+.field { display: block; margin-block-end: 1.1rem; }
 
-.sama-field { display: block; margin-bottom: 1rem; }
-
-.sama-field > span {
+.field > span:first-child {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 550;
-  margin-bottom: 0.3rem;
-  color: var(--sama-ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin-block-end: 0.35rem;
 }
 
-.sama-field input,
-.sama-field select {
-  width: 100%;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid var(--sama-border);
+.field input, .field select, .field textarea, .input {
+  inline-size: 100%;
+  padding: 0.68rem 0.85rem;
+  border: 1px solid var(--line);
   border-radius: var(--sama-radius-sm);
-  background: var(--sama-surface);
-  color: var(--sama-ink);
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
+  font-size: 0.95rem;
+  transition: border-color 120ms var(--sama-ease), box-shadow 120ms var(--sama-ease);
 }
 
-.sama-field input:focus-visible,
-.sama-field select:focus-visible,
-.sama-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--sama-accent);
-  outline-offset: 2px;
+.field input:hover, .field select:hover { border-color: var(--line-strong); }
+
+.field input:focus, .field select:focus, .field textarea:focus, .input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
-.sama-error {
-  color: var(--sama-danger);
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+.field .hint { display: block; font-size: 0.78rem; color: var(--text-faint); margin-block-start: 0.3rem; }
+
+.error-text { color: var(--critical); font-size: 0.82rem; margin-block-start: 0.3rem; }
+
+/* Focus is always visible for keyboard users, and only for them. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* ---- Surfaces ---------------------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--sama-radius);
+  padding: 1.35rem;
 }
 
-/* Respect a reduced-motion preference rather than assuming everyone wants animation. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--sama-radius-pill);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface-2);
+  color: var(--text-soft);
+}
+
+.chip--good { background: var(--positive-wash); color: var(--positive); }
+.chip--warn { background: var(--caution-wash); color: var(--caution); }
+.chip--bad { background: var(--critical-wash); color: var(--critical); }
+.chip--info { background: var(--accent-wash); color: var(--accent); }
+
+/* ---- Accessibility helpers --------------------------------------------- */
+.sr-only {
+  position: absolute;
+  inline-size: 1px; block-size: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: -9999px;
+  inset-block-start: 0;
+  z-index: 200;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0.7rem 1.1rem;
+  border-radius: 0 0 var(--sama-radius-sm) 0;
+  font-weight: 600;
+}
+
+.skip-link:focus { inset-inline-start: 0; }
+
+/* Honour a reduced-motion preference rather than assuming everyone wants the
+   page-load sequence. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }

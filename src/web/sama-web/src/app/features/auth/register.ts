@@ -2,47 +2,48 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { TranslatePipe } from '../../core/i18n';
 import { ApiError } from '../../core/interceptors/error.interceptor';
 
 @Component({
   selector: 'app-register',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe],
   template: `
-    <div class="sama-page narrow">
-      <div class="sama-card">
-        <h1>Create an account</h1>
+    <div class="page narrow">
+      <div class="card">
+        <h1>{{ 'auth.register.title' | t }}</h1>
 
         <form (submit)="submit($event)" novalidate>
-          <label class="sama-field">
-            <span>Name</span>
+          <label class="field">
+            <span>{{ 'auth.displayName' | t }}</span>
             <input name="displayName" [(ngModel)]="displayName" required
                    autocomplete="name" [disabled]="busy()" />
-            @if (fieldError('DisplayName'); as message) { <span class="sama-error">{{ message }}</span> }
+            @if (fieldError('DisplayName'); as message) { <span class="error-text">{{ message }}</span> }
           </label>
 
-          <label class="sama-field">
-            <span>Email</span>
+          <label class="field">
+            <span>{{ 'auth.email' | t }}</span>
             <input type="email" name="email" [(ngModel)]="email" required
                    autocomplete="email" [disabled]="busy()" />
-            @if (fieldError('Email'); as message) { <span class="sama-error">{{ message }}</span> }
+            @if (fieldError('Email'); as message) { <span class="error-text">{{ message }}</span> }
           </label>
 
-          <label class="sama-field">
-            <span>Password</span>
+          <label class="field">
+            <span>{{ 'auth.password' | t }}</span>
             <input type="password" name="password" [(ngModel)]="password" required
                    autocomplete="new-password" [disabled]="busy()" />
-            <span class="hint sama-muted">At least 12 characters, including a letter and a digit.</span>
-            @if (fieldError('Password'); as message) { <span class="sama-error">{{ message }}</span> }
+            <span class="hint muted">At least 12 characters, including a letter and a digit.</span>
+            @if (fieldError('Password'); as message) { <span class="error-text">{{ message }}</span> }
           </label>
 
-          @if (error()) { <p class="sama-error" role="alert">{{ error() }}</p> }
+          @if (error()) { <p class="error-text" role="alert">{{ error() }}</p> }
 
-          <button type="submit" class="sama-button full" [disabled]="busy()">
+          <button type="submit" class="btn full" [disabled]="busy()">
             {{ busy() ? 'Creating…' : 'Create account' }}
           </button>
         </form>
 
-        <p class="alt sama-muted">
+        <p class="alt muted">
           Already have an account? <a routerLink="/sign-in">Sign in</a>
         </p>
       </div>

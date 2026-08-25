@@ -3,24 +3,24 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../core/admin.service';
 import type { OrderSummary, Paged } from '../../core/models';
-import { MoneyPipe } from '../../shared/money.pipe';
-import { EmptyState } from '../../shared/ui/empty-state';
+import { MoneyPipe, TranslatePipe } from '../../core/i18n';
+import { EmptyIcons, EmptyState } from '../../shared/ui/empty-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { Skeleton } from '../../shared/ui/skeleton';
 import { StatusChip, orderStatusChip } from '../../shared/ui/status-chip';
 
 @Component({
   selector: 'app-admin-orders',
-  imports: [RouterLink, DatePipe, MoneyPipe, PageHeader, Skeleton, EmptyState, StatusChip],
+  imports: [RouterLink, DatePipe, MoneyPipe, PageHeader, Skeleton, EmptyState, StatusChip, TranslatePipe],
   template: `
-    <app-page-header title="Orders" description="Every order across the storefront." />
+    <app-page-header title="Orders" [description]="'admin.orders.lede' | t" />
 
     @if (unsettled().length > 0) {
       <!-- An order that has not settled long after it was placed means the saga stalled.
            Surfacing it here beats waiting for a customer to ask where their order is. -->
       <div class="alert">
         <strong>{{ unsettled().length }} order(s) are still settling.</strong>
-        <span class="sama-muted">
+        <span class="muted">
           Orders normally reach Confirmed or Cancelled within seconds. Ones that linger usually
           mean the outbox is not draining — see the operations runbook.
         </span>
@@ -30,19 +30,19 @@ import { StatusChip, orderStatusChip } from '../../shared/ui/status-chip';
     @if (loading()) {
       <app-skeleton [count]="6" [height]="56" />
     } @else if ((page()?.totalCount ?? 0) === 0) {
-      <app-empty-state icon="✇" title="No orders yet" description="Orders will appear here as customers check out." />
+      <app-empty-state [icon]="EmptyIcons.order" [title]="'admin.orders.empty' | t" [description]="'admin.orders.emptyCopy' | t" />
     } @else {
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">All orders</caption>
+          <caption class="sr-only">{{ 'admin.orders.lede' | t }}</caption>
           <thead>
             <tr>
-              <th scope="col">Order</th>
-              <th scope="col">Placed</th>
-              <th scope="col" class="numeric">Items</th>
-              <th scope="col">Status</th>
-              <th scope="col" class="numeric">Total</th>
-              <th scope="col"><span class="sr-only">Actions</span></th>
+              <th scope="col">{{ 'field.order' | t }}</th>
+              <th scope="col">{{ 'orders.placed' | t }}</th>
+              <th scope="col" class="numeric">{{ 'orders.items' | t }}</th>
+              <th scope="col">{{ 'field.status' | t }}</th>
+              <th scope="col" class="numeric">{{ 'orders.total' | t }}</th>
+              <th scope="col"><span class="sr-only">{{ 'common.actions' | t }}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -52,7 +52,7 @@ import { StatusChip, orderStatusChip } from '../../shared/ui/status-chip';
                 <td>{{ order.createdAt | date: 'medium' }}</td>
                 <td class="numeric">{{ order.lineCount }}</td>
                 <td>
-                  <app-status-chip [label]="chip(order.status).label" [tone]="chip(order.status).tone" />
+                  <app-status-chip [spec]="chip(order.status)" />
                 </td>
                 <td class="numeric">{{ order.total | money: order.currency }}</td>
                 <td class="actions">
@@ -66,11 +66,11 @@ import { StatusChip, orderStatusChip } from '../../shared/ui/status-chip';
 
       @if (page()!.totalPages > 1) {
         <nav class="pager" aria-label="Pagination">
-          <button type="button" class="sama-button sama-button--ghost"
-                  [disabled]="!page()!.hasPrevious" (click)="goTo(page()!.page - 1)">Previous</button>
-          <span class="sama-muted">Page {{ page()!.page }} of {{ page()!.totalPages }}</span>
-          <button type="button" class="sama-button sama-button--ghost"
-                  [disabled]="!page()!.hasNext" (click)="goTo(page()!.page + 1)">Next</button>
+          <button type="button" class="btn btn--ghost"
+                  [disabled]="!page()!.hasPrevious" (click)="goTo(page()!.page - 1)">{{ 'common.previous' | t }}</button>
+          <span class="muted">Page {{ page()!.page }} of {{ page()!.totalPages }}</span>
+          <button type="button" class="btn btn--ghost"
+                  [disabled]="!page()!.hasNext" (click)="goTo(page()!.page + 1)">{{ 'common.next' | t }}</button>
         </nav>
       }
     }
@@ -89,6 +89,7 @@ import { StatusChip, orderStatusChip } from '../../shared/ui/status-chip';
   `,
 })
 export class AdminOrderTable {
+  protected readonly EmptyIcons = EmptyIcons;
   private readonly admin = inject(AdminService);
 
   protected readonly page = signal<Paged<OrderSummary> | null>(null);

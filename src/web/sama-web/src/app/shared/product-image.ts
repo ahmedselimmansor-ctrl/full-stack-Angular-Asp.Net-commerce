@@ -31,9 +31,9 @@ import { Component, computed, input, signal } from '@angular/core';
     .fallback {
       width: 100%; height: 100%;
       display: grid; place-items: center;
-      background: var(--sama-surface-alt);
-      color: var(--sama-ink-soft);
-      font-family: var(--sama-serif);
+      background: var(--surface-2);
+      color: var(--text-soft);
+      font-family: var(--sama-display);
       font-size: clamp(1.25rem, 18cqi, 3rem);
       container-type: inline-size;
     }

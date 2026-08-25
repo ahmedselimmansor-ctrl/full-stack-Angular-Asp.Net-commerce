@@ -1,49 +1,25 @@
-import { Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { APP_CONFIG } from './core/app-config';
-import { HasPermissionDirective } from './core/has-permission.directive';
-import { AuthService } from './core/auth.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { NotificationService } from './core/notification.service';
-import { BasketBadge } from './shared/basket-badge';
+import { LocaleService } from './core/i18n';
+import { ThemeService } from './core/theme.service';
 import { NoticeStack } from './shared/notice-stack';
+import { SiteHeader } from './shared/site-header';
+import { SiteFooter } from './shared/site-footer';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BasketBadge, NoticeStack, HasPermissionDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterOutlet, NoticeStack, SiteHeader, SiteFooter],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
-  private readonly auth = inject(AuthService);
   protected readonly notifications = inject(NotificationService);
 
-  protected readonly storeName = inject(APP_CONFIG).storeName;
-  protected readonly isAuthenticated = this.auth.isAuthenticated;
-  protected readonly displayName = this.auth.displayName;
-  protected readonly year = new Date().getFullYear();
-
-  /** Any one of these means the account has something to do in the back office. */
-  protected readonly adminPermissions = [
-    'catalog:product:write',
-    'catalog:category:write',
-    'inventory:stock:read',
-    'ordering:order:read.any',
-    'payment:payment:read.any',
-    'identity:user:read',
-  ];
-
-  protected readonly initials = computed(() => {
-    const name = this.displayName();
-    if (!name) return '';
-
-    return name
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join('');
-  });
-
-  protected async signOut(): Promise<void> {
-    await this.auth.logout();
-  }
+  // Injected purely so both services construct at startup. Each writes to the
+  // document element in a constructor effect, and without a reference here
+  // nothing would pull them in until some component happened to need one.
+  private readonly locale = inject(LocaleService);
+  private readonly theme = inject(ThemeService);
 }

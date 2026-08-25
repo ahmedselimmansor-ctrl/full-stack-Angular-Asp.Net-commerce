@@ -1,0 +1,143 @@
+.admin {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  align-items: start;
+  min-block-size: 70vh;
+}
+
+/* ---- Rail --------------------------------------------------------------- */
+.rail {
+  position: sticky;
+  /* Clears the sticky site header so the rail's own top is not hidden under it. */
+  inset-block-start: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem 0.85rem;
+  border-inline-end: 1px solid var(--line);
+  background: var(--surface);
+  min-block-size: calc(100vh - 100px);
+}
+
+.rail__head { padding-inline: 0.7rem; }
+
+.rail__title {
+  margin: 0;
+  font-family: var(--sama-display);
+  font-weight: 700;
+  font-stretch: 115%;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+:host-context([dir='rtl']) .rail__title { font-family: var(--sama-display-ar); font-stretch: normal; letter-spacing: 0; }
+
+.rail__who {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+.rail__nav { display: flex; flex-direction: column; gap: 0.15rem; }
+
+.rail__link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--sama-radius-sm);
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  text-decoration: none;
+  transition: background-color 140ms var(--sama-ease), color 140ms var(--sama-ease);
+}
+
+.rail__link svg {
+  inline-size: 18px;
+  block-size: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rail__link:hover { background: var(--surface-2); color: var(--text); }
+
+/* The active section is marked with a bar on the leading edge as well as colour,
+   so it does not rely on hue alone to be identifiable. */
+.rail__link.is-active {
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+:host-context([dir='rtl']) .rail__link.is-active { box-shadow: inset -2px 0 0 var(--accent); }
+
+.rail__foot {
+  margin-block-start: auto;
+  display: grid;
+  gap: 0.85rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--line);
+}
+
+.rail__prefs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-inline: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.rail__exit {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--sama-radius-sm);
+  font-size: 0.86rem;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+
+.rail__exit:hover { background: var(--surface-2); color: var(--text); }
+
+.rail__exit svg {
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:host-context([dir='rtl']) .rail__exit svg { transform: scaleX(-1); }
+
+/* ---- Content ------------------------------------------------------------ */
+.content {
+  padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2rem) 4rem;
+  min-inline-size: 0;
+}
+
+.content__nav-toggle { display: none; margin-block-end: 1.25rem; }
+
+@media (max-width: 900px) {
+  .admin { grid-template-columns: 1fr; }
+
+  .rail {
+    position: static;
+    min-block-size: 0;
+    display: none;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--line);
+  }
+
+  .rail.is-open { display: flex; }
+  .content__nav-toggle { display: inline-flex; }
+}

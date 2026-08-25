@@ -14,13 +14,13 @@ import { Component, computed, input, output, signal } from '@angular/core';
       <div class="dialog" role="alertdialog" aria-modal="true"
            [attr.aria-labelledby]="titleId()" (click)="$event.stopPropagation()">
         <h2 [id]="titleId()">{{ title() }}</h2>
-        <p class="sama-muted">{{ message() }}</p>
+        <p class="muted">{{ message() }}</p>
         <div class="actions">
-          <button type="button" class="sama-button sama-button--ghost" (click)="dismiss()">
+          <button type="button" class="btn btn--ghost" (click)="dismiss()">
             {{ cancelLabel() }}
           </button>
-          <button type="button" class="sama-button"
-                  [class.sama-button--danger]="destructive()"
+          <button type="button" class="btn"
+                  [class.btn--danger]="destructive()"
                   (click)="confirmed.emit()">
             {{ confirmLabel() }}
           </button>
@@ -38,8 +38,8 @@ import { Component, computed, input, output, signal } from '@angular/core';
       position: fixed; z-index: 81;
       top: 50%; left: 50%; transform: translate(-50%, -50%);
       width: min(420px, calc(100vw - 2rem));
-      background: var(--sama-surface);
-      border: 1px solid var(--sama-border);
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: var(--sama-radius);
       box-shadow: var(--sama-shadow);
       padding: 1.5rem;

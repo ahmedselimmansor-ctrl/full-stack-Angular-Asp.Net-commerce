@@ -1,0 +1,131 @@
+/* The footer sits on the same dusk field as the hero, so the page is bracketed
+   by the brand colour in both themes rather than fading out into the chrome. */
+.foot {
+  background: var(--sama-field);
+  color: var(--on-field);
+  padding-block-start: clamp(3rem, 6vw, 4.5rem);
+  margin-block-start: clamp(3rem, 7vw, 5rem);
+}
+
+.foot__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 2fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  padding-block-end: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.foot__mark {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.foot__mark-primary {
+  font-family: var(--sama-display);
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: 1.9rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.foot__mark-ghost {
+  font-family: var(--sama-display-ar);
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--sama-glaze-bright);
+  opacity: 0.7;
+}
+
+:host-context([dir='rtl']) .foot__mark-primary {
+  font-family: var(--sama-display-ar);
+  font-stretch: normal;
+  letter-spacing: 0;
+  font-size: 2rem;
+}
+
+:host-context([dir='rtl']) .foot__mark-ghost {
+  font-family: var(--sama-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.foot__tagline {
+  color: var(--on-field-soft);
+  font-size: 0.94rem;
+  max-inline-size: 34ch;
+  margin-block-end: 1.5rem;
+}
+
+.foot__prefs { display: flex; align-items: center; gap: 0.5rem; }
+
+/* The toggles live on the dark field here, so they need their own surface
+   colours rather than the page tokens the header versions inherit. */
+.foot__prefs ::ng-deep .seg,
+.foot__prefs ::ng-deep .lang {
+  background: rgb(232 241 240 / 7%);
+  border-color: rgb(232 241 240 / 16%);
+  color: var(--on-field);
+}
+
+.foot__prefs ::ng-deep .seg__btn { color: var(--on-field-soft); }
+.foot__prefs ::ng-deep .seg__btn:hover { color: var(--on-field); }
+
+.foot__prefs ::ng-deep .seg__btn.is-on {
+  background: rgb(232 241 240 / 14%);
+  color: var(--sama-glaze-bright);
+  box-shadow: none;
+}
+
+.foot__prefs ::ng-deep .lang__active { color: var(--sama-glaze-bright); }
+.foot__prefs ::ng-deep .lang__other { color: var(--on-field-soft); }
+
+.foot__cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.foot__heading {
+  font-family: var(--sama-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--on-field-soft);
+  margin: 0 0 0.9rem;
+}
+
+:host-context([dir='rtl']) .foot__heading { letter-spacing: 0; text-transform: none; font-size: 0.84rem; }
+
+.foot__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+
+.foot__list a {
+  color: var(--on-field);
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: color 140ms var(--sama-ease);
+}
+
+.foot__list a:hover { color: var(--sama-glaze-bright); }
+
+.foot__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-block: 1.25rem;
+  border-block-start: 1px solid rgb(232 241 240 / 12%);
+  color: var(--on-field-soft);
+  font-size: 0.84rem;
+}
+
+.foot__base p { margin: 0; }
+.foot__origin { color: var(--sama-glaze-bright); opacity: 0.8; }
+
+@media (max-width: 760px) {
+  .foot__inner { grid-template-columns: 1fr; }
+}

@@ -21,6 +21,7 @@ microservices behind one API gateway, deployed to GKE.
 - [System design](#system-design)
 - [The checkout saga](#the-checkout-saga)
 - [Database design](#database-design)
+- [The storefront](#the-storefront)
 - [Security](#security)
 - [Deployment](#deployment)
 - [Running it locally](#running-it-locally)
@@ -514,6 +515,49 @@ query stays on the small unprocessed tail rather than the whole history.
 
 ---
 
+## The storefront
+
+Three departments — Clothing, Shoes and Electronics — sit behind one catalogue
+component; a department is `/shop` with its category pinned and its own editorial
+masthead. The home page opens on the departments rather than a wall of products,
+because its single job is to route someone into one of three rooms.
+
+```mermaid
+flowchart LR
+    Home["/"] --> Clothing["/clothing"]
+    Home --> Shoes["/shoes"]
+    Home --> Electronics["/electronics"]
+    Home --> Shop["/shop"]
+
+    Clothing --> Product["/products/:slug"]
+    Shoes --> Product
+    Electronics --> Product
+    Shop --> Product
+
+    Product --> Basket["/basket"] --> Checkout["/checkout"] --> Orders["/orders/:id"]
+
+    Admin["/admin"] --> AdminSections["products · categories · stock<br/>orders · payments · users"]
+```
+
+Every route is lazily loaded, and `/admin` is guarded on the parent so a child
+cannot be reached directly. That decides what renders; the API decides what may
+actually be read or changed.
+
+The interface is bilingual English and Arabic, switchable at runtime, with the
+whole layout mirroring for RTL through CSS logical properties. Light and dark are
+joined by a third "match system" state that keeps following the operating system.
+Both choices survive a reload and are applied before first paint.
+
+Product imagery is served from Unsplash over the CDN; `scripts/seed-shop.sh`
+fills the three departments with 22 priced, photographed, in-stock products so
+the design can be judged against real content rather than placeholders.
+
+See [the design system](docs/04-design-system.md) for the palette, the type
+pairing, and the encapsulation trap that made Arabic headings render in a
+Latin-only face.
+
+---
+
 ## Security
 
 The full model is in [docs/02-security.md](docs/02-security.md). The token flow in brief:
@@ -655,9 +699,9 @@ cd src/web/sama-web && npm install && npm start
 
 ```mermaid
 flowchart TB
-    e2e["22 end-to-end<br/>real browser, real stack, real saga"]
+    e2e["24 end-to-end<br/>real browser, real stack, real saga"]
     int["20 integration<br/>real PostgreSQL and Redis in Testcontainers"]
-    unit["126 unit<br/>89 .NET, 27 Angular, 10 Kotlin"]
+    unit["154 unit<br/>94 .NET, 40 Angular, 20 Kotlin"]
 
     unit --> int --> e2e
 ```
@@ -666,7 +710,7 @@ flowchart TB
 |---|---|---|
 | .NET unit | `dotnet test tests/Sama.UnitTests` | Money rounding, Result, access scopes, aggregates driven out of order |
 | .NET integration | `dotnet test tests/Sama.IntegrationTests` | Query filters becoming SQL, partial indexes, Lua atomicity under concurrency |
-| Angular unit | `cd src/web/sama-web && npm test` | Auth service, interceptors, guards, formatting |
+| Angular unit | `./scripts/test-web.sh` | Auth service, interceptors, guards, theme, translations, RTL encapsulation |
 | Kotlin unit | `cd src/mobile/sama-android && ./gradlew test` | Currency precision, wire-contract tolerance |
 | End-to-end | `cd tests/e2e && npm test` | Browse, register, checkout, saga settlement, back office |
 | Shell (API) | `./scripts/test-all.sh` | Five suites against the running stack |
@@ -676,8 +720,10 @@ would pass while production failed: what needs proving is that a model-level fil
 becomes a `WHERE` clause, that a partial unique index behaves as intended, and that 50
 concurrent rate-limit acquisitions against a limit of 10 admit exactly 10.
 
-> **Note.** Angular's test discovery fails if the checkout path contains parentheses — Vitest
-> receives absolute paths as glob patterns, and `(` is extglob syntax. See
+> **Note.** Vitest receives absolute paths as glob patterns, so a checkout path containing
+> parentheses never matches itself and the runner reports "No test files found" immediately
+> after listing the files it found. `scripts/test-web.sh` stages the sources at a clean path
+> and runs there, so the suite works from any checkout. See
 > [src/web/sama-web/TESTING.md](src/web/sama-web/TESTING.md).
 
 ---
@@ -719,3 +765,4 @@ access scopes), `Infrastructure` (caching, rate limiting, EF base context, telem
 - [Architecture](docs/01-architecture.md) — services, data ownership, caching, the saga
 - [Security](docs/02-security.md) — threat model, and what answers each part of it
 - [Operations](docs/03-operations.md) — runbook, failure modes, alerting, recovery
+- [Design system](docs/04-design-system.md) — palette, type, theming, and how Arabic is handled

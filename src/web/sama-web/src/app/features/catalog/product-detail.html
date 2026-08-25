@@ -1,0 +1,75 @@
+<div class="page detail-page">
+  @if (loading()) {
+    <div class="detail">
+      <app-skeleton [count]="1" [height]="440" />
+      <app-skeleton [count]="4" [height]="28" />
+    </div>
+  } @else if (product(); as item) {
+    <nav class="crumbs" [attr.aria-label]="'nav.breadcrumb' | t">
+      <a routerLink="/shop">{{ 'nav.shop' | t }}</a>
+      <span aria-hidden="true" class="crumbs__sep">/</span>
+      <span class="crumbs__here">{{ item.name }}</span>
+    </nav>
+
+    <div class="detail">
+      <div class="detail__media">
+        <div class="detail__frame">
+          <app-product-image
+            [source]="item.images.length > 0 ? item.images[selected()].url : null"
+            [alt]="item.images.length > 0 ? (item.images[selected()].altText ?? item.name) : item.name"
+            [eager]="true"
+          />
+        </div>
+
+        @if (item.images.length > 1) {
+          <div class="thumbs" role="group" [attr.aria-label]="'product.images' | t">
+            @for (image of item.images; track image.url; let i = $index) {
+              <button
+                type="button"
+                class="thumb"
+                [class.is-selected]="i === selected()"
+                [attr.aria-pressed]="i === selected()"
+                [attr.aria-label]="locale.t('product.viewImage', { n: i + 1 })"
+                (click)="selected.set(i)"
+              >
+                <app-product-image [source]="image.url" [alt]="image.altText ?? ''" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="detail__info">
+        @if (item.brand) {
+          <p class="brand">{{ item.brand }}</p>
+        }
+
+        <h1>{{ item.name }}</h1>
+        <p class="price">{{ item.price | money: item.currency }}</p>
+        <p class="sku faint">{{ 'product.sku' | t }} <span class="mono">{{ item.sku }}</span></p>
+        <p class="description">{{ item.description }}</p>
+
+        <div class="buy">
+          <label class="field qty">
+            <span>{{ 'product.quantity' | t }}</span>
+            <select [value]="quantity()" (change)="onQuantityChange($event)">
+              @for (n of quantities; track n) {
+                <option [value]="n">{{ locale.formatNumber(n) }}</option>
+              }
+            </select>
+          </label>
+
+          <button type="button" class="btn" [disabled]="adding()" (click)="addToBasket(item)">
+            {{ (adding() ? 'product.adding' : 'product.addToBasket') | t }}
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="card missing">
+      <h1>{{ 'product.notFound.title' | t }}</h1>
+      <p class="muted">{{ 'product.notFound.copy' | t }}</p>
+      <a class="btn" routerLink="/shop">{{ 'nav.shop' | t }}</a>
+    </div>
+  }
+</div>

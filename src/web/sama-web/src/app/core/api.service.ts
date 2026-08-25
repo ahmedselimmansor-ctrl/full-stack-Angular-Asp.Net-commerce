@@ -18,6 +18,8 @@ export class CatalogService {
   private readonly http = inject(HttpClient);
   private readonly base = inject(APP_CONFIG).apiBaseUrl;
 
+  private categoryCache: Promise<CategoryNode[]> | null = null;
+
   list(options: {
     page?: number;
     pageSize?: number;
@@ -46,6 +48,30 @@ export class CatalogService {
 
   categories(): Promise<CategoryNode[]> {
     return firstValueFrom(this.http.get<CategoryNode[]>(`${this.base}/api/v1/categories`));
+  }
+
+  /**
+   * The category tree changes about as often as the shop is redesigned, but every
+   * department page needs it to turn a slug in the URL into the id the list
+   * endpoint wants. Caching the in-flight promise means a visitor moving between
+   * departments fetches it once, and two components mounting together share one
+   * request rather than racing.
+   */
+  categoriesCached(): Promise<CategoryNode[]> {
+    this.categoryCache ??= this.categories().catch((error) => {
+      // A failed fetch must not poison the cache, or the shop stays broken until reload.
+      this.categoryCache = null;
+      throw error;
+    });
+
+    return this.categoryCache;
+  }
+
+  async categoryBySlug(slug: string): Promise<CategoryNode | null> {
+    const flatten = (nodes: readonly CategoryNode[]): CategoryNode[] =>
+      nodes.flatMap((node) => [node, ...flatten(node.children)]);
+
+    return flatten(await this.categoriesCached()).find((node) => node.slug === slug) ?? null;
   }
 }
 

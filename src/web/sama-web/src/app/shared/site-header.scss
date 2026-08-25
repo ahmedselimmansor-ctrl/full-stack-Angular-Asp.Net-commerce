@@ -1,0 +1,400 @@
+:host {
+  display: block;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 50;
+}
+
+/* ---- Promise bar ------------------------------------------------------- */
+.promise {
+  background: var(--sama-field);
+  color: var(--on-field-soft);
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+}
+
+.promise__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-block-size: 32px;
+  text-align: center;
+}
+
+.promise__dot {
+  inline-size: 3px;
+  block-size: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+  flex: none;
+}
+
+/* Below the fold of a phone screen there is only room for the first promise. */
+@media (max-width: 700px) {
+  .promise__dot, .promise__last { display: none; }
+  .promise__inner > span:nth-child(3) { display: none; }
+}
+
+/* ---- Main bar ---------------------------------------------------------- */
+.bar {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  /* backdrop-filter creates a stacking context, which traps the account menu's
+     z-index inside this bar. Without an explicit position and z-index here the
+     bar paints below the dismiss scrim, and the scrim then swallows clicks on the
+     menu items it is supposed to sit behind -- including Sign out. */
+  position: relative;
+  z-index: 45;
+  backdrop-filter: blur(14px);
+  border-block-end: 1px solid transparent;
+  transition: border-color 200ms var(--sama-ease), box-shadow 200ms var(--sama-ease);
+}
+
+/* The bar only grows a border once the page has moved, so at rest it sits flush
+   against the hero instead of drawing a line across it. */
+.bar.is-condensed {
+  border-block-end-color: var(--line);
+  box-shadow: 0 8px 24px rgb(6 18 25 / 6%);
+}
+
+.bar__inner {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.6rem, 2vw, 1.5rem);
+  min-block-size: 68px;
+}
+
+.bar.is-condensed .bar__inner { min-block-size: 58px; }
+
+/* ---- Brand: the dual-script mark --------------------------------------- */
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  text-decoration: none;
+  flex: none;
+  margin-inline-end: auto;
+}
+
+.brand__primary {
+  font-family: var(--sama-display);
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.brand__ghost {
+  font-family: var(--sama-display-ar);
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-faint);
+  opacity: 0.55;
+  transition: opacity 200ms var(--sama-ease);
+}
+
+.brand:hover .brand__ghost { opacity: 1; color: var(--accent); }
+
+/* In Arabic the roles invert: the Kufic mark leads and the Latin trails. */
+:host-context([dir='rtl']) .brand__primary {
+  font-family: var(--sama-display-ar);
+  font-stretch: normal;
+  letter-spacing: 0;
+  font-size: 1.6rem;
+}
+
+:host-context([dir='rtl']) .brand__ghost {
+  font-family: var(--sama-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+/* ---- Desktop nav ------------------------------------------------------- */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.6vw, 1.6rem);
+}
+
+.nav__link {
+  position: relative;
+  padding-block: 0.4rem;
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 140ms var(--sama-ease);
+}
+
+.nav__link:hover { color: var(--text); }
+
+/* The active rule is drawn under the word itself rather than the whole cell, so
+   it reads as an underline of the label in both writing directions. */
+.nav__link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -2px;
+  block-size: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 180ms var(--sama-ease);
+}
+
+.nav__link.is-active { color: var(--text); }
+.nav__link.is-active::after { transform: scaleX(1); }
+
+@media (max-width: 900px) {
+  .nav { display: none; }
+}
+
+/* ---- Actions ----------------------------------------------------------- */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.actions__prefs { display: flex; align-items: center; gap: 0.4rem; }
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  inline-size: 38px;
+  block-size: 38px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--sama-radius-pill);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background-color 140ms var(--sama-ease), color 140ms var(--sama-ease);
+}
+
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+
+.icon-btn svg {
+  inline-size: 19px;
+  block-size: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bar__burger { display: none; }
+
+.avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 50%;
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.avatar:hover { filter: brightness(0.96); }
+
+/* ---- Search ------------------------------------------------------------ */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  inline-size: clamp(180px, 20vw, 260px);
+}
+
+.search__input {
+  inline-size: 100%;
+  padding: 0.48rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--sama-radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  transition: border-color 140ms var(--sama-ease), background-color 140ms var(--sama-ease);
+}
+
+.search__input::placeholder { color: var(--text-faint); }
+.search__input:focus { background: var(--surface); border-color: var(--accent); outline: none; }
+.search__go { inline-size: 34px; block-size: 34px; }
+.actions__search-toggle { display: none; }
+
+/* Below 1080 the field is collapsed behind an icon; opening it drops a full-width
+   row under the bar rather than squeezing the brand and actions together. */
+@media (max-width: 1080px) {
+  .search {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 100%;
+    inline-size: auto;
+    padding: 0.7rem clamp(1rem, 4vw, 2.5rem);
+    background: var(--surface);
+    border-block-end: 1px solid var(--line);
+    box-shadow: var(--sama-shadow);
+    display: none;
+  }
+
+  .search.is-open { display: flex; }
+  .actions__search-toggle { display: grid; }
+  .bar__inner { position: relative; }
+}
+
+@media (max-width: 900px) {
+  .bar__burger { display: grid; }
+  .brand { order: -1; margin-inline: 0 auto; }
+  .actions__prefs { display: none; }
+  .actions__signin { display: none; }
+}
+
+/* ---- Drawer ------------------------------------------------------------ */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(6 18 25 / 45%);
+  backdrop-filter: blur(2px);
+}
+
+.drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 70;
+  inline-size: min(320px, 86vw);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.25rem;
+  background: var(--surface);
+  border-inline-end: 1px solid var(--line);
+  box-shadow: var(--sama-shadow-lg);
+  /* Logical translate keeps the drawer sliding in from the leading edge, which
+     is the left in English and the right in Arabic. */
+  transform: translateX(-100%);
+  visibility: hidden;
+  /* Visibility is stepped, not transitioned: it flips to hidden only after the
+     slide finishes on close, and back to visible instantly on open. Putting it
+     in the transition list instead makes the drawer depend on the animation
+     timeline advancing, so a throttled or backgrounded tab can leave it
+     invisible while it is nominally open. */
+  transition: transform 260ms var(--sama-ease), visibility 0s linear 260ms;
+}
+
+:host-context([dir='rtl']) .drawer { transform: translateX(100%); }
+
+.drawer.is-open {
+  transform: translateX(0);
+  visibility: visible;
+  transition: transform 260ms var(--sama-ease), visibility 0s linear 0s;
+}
+
+.drawer__nav { display: flex; flex-direction: column; gap: 0.15rem; }
+
+.drawer__link {
+  padding: 0.7rem 0.6rem;
+  border: 0;
+  border-radius: var(--sama-radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.02rem;
+  font-weight: 500;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.drawer__link:hover { background: var(--surface-2); }
+.drawer__link--button { color: var(--critical); }
+
+.drawer__rule { border: 0; border-block-start: 1px solid var(--line); margin: 0.6rem 0; }
+
+.drawer__prefs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--line);
+}
+
+@media (min-width: 901px) {
+  .drawer, .scrim { display: none; }
+}
+
+/* ---- Account menu ------------------------------------------------------- */
+.account { position: relative; }
+
+button.avatar {
+  border: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Below the bar, so the menu it dismisses stays clickable. */
+.account__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.account__menu {
+  position: absolute;
+  inset-block-start: calc(100% + 0.5rem);
+  /* Anchored to the trailing edge so it opens inward in both directions. */
+  inset-inline-end: 0;
+  z-index: 45;
+  min-inline-size: 200px;
+  padding: 0.4rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--sama-radius);
+  box-shadow: var(--sama-shadow-lg);
+  display: grid;
+  gap: 0.1rem;
+}
+
+.account__who {
+  margin: 0;
+  padding: 0.45rem 0.7rem 0.55rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+.account__item {
+  display: block;
+  inline-size: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  border-radius: var(--sama-radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account__item:hover { background: var(--surface-2); }
+.account__item--signout { color: var(--critical); }
+
+.account__rule { border: 0; border-block-start: 1px solid var(--line); margin: 0.35rem 0; }
