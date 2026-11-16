@@ -1,6 +1,6 @@
 # Sama
 
-A commerce platform built for Google Cloud. Angular storefront, Kotlin app, six .NET
+A commerce platform built for Google Cloud. Angular storefront, six .NET
 microservices behind one API gateway, deployed to GKE.
 
 [![CI](https://github.com/ahmedselimmansor-ctrl/sama-commerce/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmedselimmansor-ctrl/sama-commerce/actions/workflows/ci.yml)
@@ -9,7 +9,6 @@ microservices behind one API gateway, deployed to GKE.
 |---|---|
 | **Backend** | .NET 10, six services plus a YARP gateway |
 | **Storefront** | Angular 22, standalone, signals, zoneless |
-| **Mobile** | Kotlin, Jetpack Compose, Hilt |
 | **Data** | PostgreSQL 16 (schema per service), Redis, Pub/Sub |
 | **Platform** | GKE Autopilot, Cloud SQL, Memorystore, Cloud Armor, Cloud CDN |
 | **Tests** | 168 — unit, integration, end-to-end |
@@ -34,13 +33,12 @@ microservices behind one API gateway, deployed to GKE.
 
 ### Context
 
-Three clients, one public edge. Nothing reaches a service directly.
+Two clients, one public edge. Nothing reaches a service directly.
 
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
         web["Angular storefront<br/>browser"]
-        app["Kotlin app<br/>Android"]
         partner["Partner integrations<br/>server to server"]
     end
 
@@ -704,7 +702,7 @@ cd src/web/sama-web && npm install && npm start
 flowchart TB
     e2e["25 end-to-end<br/>real browser, real stack, real saga"]
     int["20 integration<br/>real PostgreSQL and Redis in Testcontainers"]
-    unit["174 unit<br/>101 .NET, 49 Angular, 24 Kotlin"]
+    unit["150 unit<br/>101 .NET, 49 Angular"]
 
     unit --> int --> e2e
 ```
@@ -714,7 +712,6 @@ flowchart TB
 | .NET unit | `dotnet test tests/Sama.UnitTests` | Money rounding, Result, access scopes, aggregates driven out of order |
 | .NET integration | `dotnet test tests/Sama.IntegrationTests` | Query filters becoming SQL, partial indexes, Lua atomicity under concurrency |
 | Angular unit | `./scripts/test-web.sh` | Auth service, interceptors, guards, theme, translations, RTL encapsulation |
-| Kotlin unit | `cd src/mobile/sama-android && ./gradlew test` | Currency precision, wire-contract tolerance, English/Arabic string parity |
 | End-to-end | `cd tests/e2e && npm test` | Browse, register, checkout, saga settlement, back office |
 | Shell (API) | `./scripts/test-all.sh` | Five suites against the running stack |
 | Contrast | `./scripts/check-contrast.py` | Every rendered colour pairing against WCAG AA, both themes |
@@ -747,7 +744,6 @@ flowchart TB
     src --> services["services/ — six .NET services"]
     src --> shared["shared/ — Kernel, Security, Infrastructure, Messaging"]
     src --> webdir["web/sama-web — Angular"]
-    src --> mobile["mobile/sama-android — Kotlin"]
 
     deploy --> tf["terraform/ — GCP"]
     deploy --> k8s["k8s/ — Kustomize base and overlays"]

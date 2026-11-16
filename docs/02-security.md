@@ -81,7 +81,6 @@ self-renewing session.
 | Client | Access token | Refresh token |
 |---|---|---|
 | Browser | In memory only (an Angular signal) | HttpOnly, Secure, SameSite=Strict cookie scoped to `/api/v1/auth` |
-| Android | In memory (`AtomicReference`) | `EncryptedSharedPreferences`, key in the hardware keystore |
 
 Nothing in web storage. A refresh token in `localStorage` is readable by any injected script,
 which turns one XSS into permanent account access; an HttpOnly cookie is not readable by
@@ -266,8 +265,6 @@ Honest about what is not done:
 - **Email verification and password reset** are modelled (`EmailConfirmed`, security stamps)
   but the delivery flow is not implemented.
 - **MFA** is not implemented. The security-stamp mechanism is the right hook for it.
-- **Certificate pinning** in the Android app is not configured. It would raise the bar against
-  a compromised device CA, at the cost of an app update whenever the certificate rotates.
 - **Cloud Armor WAF rules run at sensitivity 1**, the conservative tier. Higher tiers catch
   more but produce false positives on legitimate payloads, and a WAF that blocks real customers
   is worse than one that blocks less. Raising it needs traffic data first.

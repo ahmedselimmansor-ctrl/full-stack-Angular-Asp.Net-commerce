@@ -14,8 +14,7 @@ namespace Sama.Identity.Features.Auth;
 /// </para>
 /// <para>
 /// Native clients cannot use cookies as conveniently, so the token is <i>also</i> returned in
-/// the body. The web client ignores that field and relies on the cookie; the Android app does
-/// the reverse and stores it in encrypted preferences.
+/// the body. The web client ignores that field and relies on the cookie.
 /// </para>
 /// </summary>
 public static class RefreshTokenCookie

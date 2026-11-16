@@ -7,18 +7,16 @@
 
 ## 1. Context
 
-Sama is a multi-channel commerce platform. Three clients talk to one edge.
+Sama is a multi-channel commerce platform. Two clients talk to one edge.
 
 | Client | Tech | Path |
 |---|---|---|
 | Web storefront and back office | Angular 22, standalone, signals, zoneless | `src/web/sama-web` |
-| Android app | Kotlin, Jetpack Compose, Hilt | `src/mobile/sama-android` |
 | Partner integrations | REST over the same gateway | — |
 
 ```mermaid
 flowchart LR
     web[Angular storefront] --> lb
-    app[Kotlin app] --> lb
     partner[Partner] --> lb
     lb["Cloud Load Balancer"] --> armor["Cloud Armor"] --> gw["Sama.Gateway"]
     gw --> services["Six .NET services"]
@@ -264,7 +262,6 @@ a mismatch that only shows up as pods failing to start.
 | `src/shared/Sama.Shared.Infrastructure` | EF base context, caching, rate limiting, telemetry |
 | `src/shared/Sama.Shared.Messaging` | Event contracts, outbox, Pub/Sub |
 | `src/web/sama-web` | Angular storefront and back office |
-| `src/mobile/sama-android` | Kotlin app |
 | `deploy/terraform` | GCP infrastructure |
 | `deploy/k8s` | Kustomize base and per-environment overlays |
 | `build/docker` | Container images |

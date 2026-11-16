@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- The same accent the web storefront uses, so the two read as one product. -->
-    <color name="sama_brown">#FF8A5A2B</color>
-    <color name="sama_sand">#FFF3E9DF</color>
-</resources>

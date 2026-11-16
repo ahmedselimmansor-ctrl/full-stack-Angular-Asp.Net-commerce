@@ -3,7 +3,6 @@
 **/node_modules/
 **/dist/
 **/.angular/
-**/.gradle/
 **/build/
 !build/docker/
 .git/

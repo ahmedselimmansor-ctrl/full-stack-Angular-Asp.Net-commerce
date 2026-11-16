@@ -15,7 +15,6 @@ the constraint the interface is built around.
 - [Bilingual product content](#bilingual-product-content)
 - [The pitfall that cost the most](#the-pitfall-that-cost-the-most)
 - [Contrast](#contrast)
-- [The Android app](#the-android-app)
 - [Layout and components](#layout-and-components)
 
 ## Direction
@@ -277,47 +276,6 @@ for the decorative weight — the header search field, the language and theme
 toggles, the sort and role selects, the product-image thumbnails, and two admin
 inputs — all drawing their boundary at about 1.3:1. `control-borders.spec.ts`
 now fails the build if a control does that again.
-
-
-## The Android app
-
-The mobile app is the third surface, and it had drifted. Its palette was still
-the brown-and-cream the web moved away from, under a comment claiming the two
-matched — so the file asserted a consistency that no longer existed.
-
-It now carries the same tokens, lifted from `styles.scss`: the dusk field
-constant across both themes, the glaze deepened for light and brightened for
-dark, and the same plaster and ink greys.
-
-**Material You is off by default**, which is the opposite of the usual Android
-advice and is a deliberate trade. Sama's identity is the dusk field and the
-ceramic glaze, and it is the same identity on the web, where there is no
-wallpaper to follow. Deriving the scheme from the device would make the app the
-one surface that does not look like the product, and would discard a palette
-whose every rendered pairing is checked against WCAG AA in CI. It stays a
-parameter rather than a hard-coded `false`, so a host that would rather follow
-the device can opt in.
-
-**Strings moved out of the Compose source.** Forty-nine literals were inline,
-which is why the app had no Arabic at all: `values/strings.xml` is now the source
-of truth and `values-ar/strings.xml` the translation. `android:supportsRtl` was
-already set, so Android mirrors the layout once the Arabic set is selected.
-
-`orderStatusLabelRes` returns a resource id rather than finished text. The
-previous version hard-coded English, so an Arabic device showed "Taking payment"
-in the middle of an Arabic screen; returning an id also keeps the mapping a pure
-function that a JVM unit test can call, which the composable version could not be.
-
-`TranslationsTest` fails the build on a missing translation, an orphaned Arabic
-key, an Arabic entry still holding its English source, or a format placeholder
-that does not survive translation — `%1$s` dropped in Arabic throws at runtime
-rather than at build time.
-
-That guard needed one extra step to be real. It reads the XML off disk, which
-Gradle cannot infer, so the test task stayed up-to-date whenever only a
-translation changed — the one edit it exists to catch. The resource directory is
-now a declared input.
-
 
 ## Layout and components
 
